@@ -26,3 +26,7 @@ Thumbs.db
 # UI build output
 ui-ngx/dist/
 ui-ngx/.angular/
+
+# Gradle
+.gradle/
+build/
