@@ -1,0 +1,112 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+:host {
+  div.tb-user-info {
+    line-height: 1.5;
+
+    span {
+      text-transform: none;
+    }
+
+    span.tb-user-display-name {
+      font-size: .8rem;
+      font-weight: 300;
+      letter-spacing: .008em;
+    }
+
+    span.tb-user-authority {
+      font-size: .8rem;
+      font-weight: 300;
+      letter-spacing: .005em;
+      opacity: .8;
+    }
+
+  }
+
+  .mat-icon.tb-mini-avatar {
+    width: 36px;
+    height: 36px;
+    margin: auto 8px;
+    font-size: 36px;
+    cursor: default;
+  }
+}
+
+.tb-user-menu-items {
+  min-width: 256px;
+}
+
+.tb-user-menu-flyout-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .tb-user-menu-flyout-list {
+    display: none;
+    position: absolute;
+    left: 100%;
+    bottom: 0;
+    width: max-content;
+    min-width: 150px;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    z-index: 1000;
+    flex-direction: column;
+    button {
+      display: flex;
+      align-items: center;
+      gap: var(--tb-space-2);
+      width: 100%;
+      height: 40px;
+      padding: 10px 14px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #1F2933;
+      border-bottom: 1px solid rgba(0, 46, 1, 0.06);
+      font-family: inherit;
+      font-size: 13px;
+      text-align: left;
+      transition: background 0.15s ease, color 0.15s ease;
+      &:last-child {
+        border-bottom: none;
+      }
+      &:first-child {
+        border-top: 1px solid rgba(0, 46, 1, 0.06);
+      }
+      .mat-icon {
+        color: #1F2933;
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+      }
+      &:hover {
+        background-color: #002e01;
+        color: #FFFFFF;
+        .mat-icon {
+          color: #FFFFFF;
+        }
+      }
+    }
+  }
+  &.tb-flyout-open .tb-user-menu-flyout-list {
+    display: flex;
+  }
+}

@@ -1,0 +1,204 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+:host {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: 100%;
+}
+:host ::ng-deep {
+  .tb-menu-toggle-wrapper {
+    position: relative;
+    flex: 0 0 auto;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+
+    .tb-button-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      flex: 0 0 auto;
+      height: var(--tb-row-height, 30px) !important;
+      min-height: var(--tb-row-height, 30px) !important;
+      padding: 0 var(--tb-space-2) !important;
+      color: var(--tb-brand-green);
+      box-sizing: border-box;
+
+      .mat-icon {
+        margin-right: 8px;
+        margin-left: 0;
+        color: var(--tb-brand-green);
+      }
+
+      span.mdc-button__label {
+        display: inline-flex;
+        align-items: center;
+        width: 100%;
+      }
+    }
+
+    &.tb-collapsed {
+      height: 100%;
+      flex: 1 1 auto;
+
+      > .tb-button-toggle .mdc-button__label {
+        display: none !important;
+      }
+
+      .tb-button-toggle {
+        display: flex !important;
+        justify-content: center;
+        align-items: center;
+        padding: 0 !important;
+        height: 100%;
+        flex: 1 1 auto;
+        width: 100%;
+
+        .mat-icon {
+          font-size: 28px !important;
+          width: 28px !important;
+          height: 28px !important;
+          margin: 0 !important;
+        }
+        &:hover {
+          background-color: #002e01 !important;
+          .mat-icon {
+            color: #FFFFFF !important;
+          }
+        }
+      }
+    }
+  }
+  .tb-menu-flyout-list {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: 0;
+    width: max-content;
+    min-width: 150px;
+    background-color: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    z-index: 1000;
+    flex-direction: column;
+    li {
+      border-bottom: 1px solid rgba(0, 46, 1, 0.06);
+      &:last-child {
+        border-bottom: none;
+      }
+      &:first-child {
+        border-top: 1px solid rgba(0, 46, 1, 0.06);
+      }
+    }
+    a.mat-mdc-button {
+      display: flex;
+      align-items: center;
+      box-sizing: border-box;
+      color: #1F2933;
+      padding: 10px 14px;
+      height: auto;
+      line-height: normal;
+      font-size: 13px;
+      transition: background 0.15s ease, color 0.15s ease;
+      .mat-icon {
+        color: #1F2933;
+      }
+      &:hover {
+        background-color: #002e01 !important;
+        color: #FFFFFF;
+        .mat-icon {
+          color: #FFFFFF;
+        }
+      }
+    }
+  }
+    a.mat-mdc-button.mat-mdc-button-base .mat-icon {
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 8px !important;
+    }
+  .tb-flyout-open .tb-menu-flyout-list {
+    display: flex;
+  }
+  .tb-button-toggle {
+    .tb-toggle-icon {
+      display: inline-block;
+      width: 15px;
+      min-width: 15px;
+      margin: auto 0 auto auto;
+      background-size: 100% auto;
+      transition: transform .3s ease-in-out;
+      &.tb-toggled {
+        transform: rotateZ(180deg);
+      }
+    }
+  }
+
+  .tb-menu-toggle-list {
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      height: var(--tb-row-height, 30px);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      box-sizing: border-box;
+      border-bottom: 1px solid var(--tb-brand-green);
+      &:last-child {
+        border-bottom: none;
+      }
+      &:first-child {
+        border-top: 1px solid var(--tb-brand-green);
+      }
+    }
+    a.mat-mdc-button {
+      display: flex !important;
+      align-items: center;
+      height: var(--tb-row-height, 30px) !important;
+      box-sizing: border-box;
+      padding: 0 var(--tb-space-2) 0 32px;
+      line-height: normal;
+      font-weight: 500;
+      text-transform: none !important;
+      text-rendering: optimizeLegibility;
+      color: var(--tb-brand-green);
+
+      .mat-icon {
+        color: var(--tb-brand-green);
+      }
+
+      &:hover {
+        background-color: var(--tb-brand-green) !important;
+        color: #ffffff;
+
+        .mat-icon {
+          color: #ffffff;
+        }
+      }
+    }
+  }
+}

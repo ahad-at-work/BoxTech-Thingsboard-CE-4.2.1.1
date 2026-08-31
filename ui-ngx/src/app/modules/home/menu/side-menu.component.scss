@@ -1,0 +1,139 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+:host {
+  width: 100%;
+  height: 100%;
+}
+
+/**:host-context(.tb-sidebar-collapsed) {
+  height: 100%;
+}*/
+
+:host ::ng-deep {
+
+  .tb-side-menu,
+  .tb-side-menu ul {
+    padding: 0;
+    margin-top: 0;
+    list-style: none;
+  }
+
+  .tb-side-menu {
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    min-height: 100%;
+  }
+
+ .tb-side-menu > li {
+    border: 1px solid var(--tb-brand-green);
+    border-bottom: none;
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    height: var(--tb-row-height, 30px);
+    min-height: var(--tb-row-height, 30px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    &.tb-expanded {
+      height: auto;
+    }
+    &:last-child {
+      border-bottom: 1px solid var(--tb-brand-green);
+    }
+  }
+
+  a.mat-mdc-button.mat-mdc-button-base {
+    display: inline-flex;
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    height: auto !important;
+    box-sizing: border-box;
+    align-items: center;
+    overflow: hidden;
+    line-height: normal;
+    border-radius: 0;
+    padding: 0 var(--tb-space-2);
+    color: var(--tb-brand-green);
+    transition: background-color var(--tb-transition-fast) var(--tb-ease),
+                color var(--tb-transition-fast) var(--tb-ease);
+    &:hover {
+      border-bottom: none;
+      background-color: var(--tb-brand-green);
+      color: #ffffff;
+
+      .mat-icon {
+        color: #ffffff;
+      }
+    }
+    &:focus {
+      border-bottom: none;
+    }
+    &.tb-active {
+      background-color: var(--tb-brand-green);
+      color: #ffffff;
+
+      .mat-icon {
+        color: #ffffff;
+      }
+    }
+    .mat-icon {
+      margin-right: 8px;
+      margin-left: 0;
+      min-width: 1.125rem;
+      min-height: 1.125rem;
+      color: var(--tb-brand-green);
+      transition: color var(--tb-transition-fast) var(--tb-ease);
+    }
+    span.mdc-button__label {
+      width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: inline-flex;
+      & > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .tb-toggle-icon {
+        padding-top: 12px;
+        padding-bottom: 12px;
+      }
+    }
+  }
+}
+
+// TME section labels + divider (only rendered when tmeMode="true", so no
+// additional theme scoping needed here — these classes never appear outside
+// the TME sidebar context).
+.tb-menu-section-label {
+  padding: 0 20px;
+  margin: 12px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tb-menu-divider {
+  height: 1px;
+  margin: 16px 20px;
+  background-color: rgba(255, 255, 255, 0.10);
+}

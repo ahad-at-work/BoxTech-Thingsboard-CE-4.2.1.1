@@ -1,0 +1,1192 @@
+	/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+:host {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  mat-sidenav-container {
+    flex: 1;
+    height: 100vh;
+    height: 100dvh;
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow-x: visible !important;
+    overflow-y: hidden !important;
+    ::ng-deep .mat-drawer-container {
+      overflow-x: visible !important;
+      overflow-y: hidden !important;
+    }
+    ::ng-deep .mat-drawer.tb-site-sidenav {
+      overflow-x: visible !important;
+      overflow-y: hidden !important;
+    }
+  }
+  mat-sidenav.tb-site-sidenav {
+    width: 250px;
+    background-color: #ffffff !important;
+
+    ::ng-deep .tb-side-menu-toolbar {
+      background-color: #ffffff !important;
+    }
+
+    ::ng-deep a.mat-mdc-button.mat-mdc-button-base:not(:hover):not(.tb-active) .mat-icon {
+      color: var(--tb-brand-green) !important;
+    }
+
+        ::ng-deep .tb-sidebar-collapse-toggle .tb-panel-left-icon {
+      color: var(--tb-brand-green) !important;
+    }
+
+    @media (max-width:456px) {
+      width: calc(100% - 56px);
+    }
+    .tb-nav-header {
+      z-index: 2;
+      flex-shrink: 0;
+      white-space: nowrap;
+      .tb-nav-header-toolbar {
+        min-height: 64px;
+        height: inherit;
+        padding: 0;
+        z-index: 2;
+        flex-shrink: 0;
+        white-space: nowrap;
+        border-bottom: 1px solid rgba(0, 0, 0, .12);
+        & > div {
+          height: 64px;
+          .tb-logo-title {
+            width: auto;
+            max-width: 100%;
+            height: 48px;
+            max-height: 100%;
+            margin: 0;
+            object-fit: contain;
+          }
+        }
+      }
+    }
+    .tb-side-menu-toolbar {
+      height: inherit;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .tb-sidebar-scroll-area {
+      flex: 1;
+      overflow-y: hidden;
+      overflow-x: hidden;
+      min-height: 0;
+    }
+    .tb-sidebar-scroll-area:has(.has-expanded) {
+      overflow-y: auto;
+    }
+
+    @media (max-width: 959px) {
+      .tb-sidebar-scroll-area {
+        overflow-y: auto !important;
+      }
+    }
+
+
+    .tb-sidebar-account {
+      flex-shrink: 0;
+      box-sizing: border-box;
+      padding: var(--tb-space-2);
+      background-color: #ffffff;
+
+      ::ng-deep section.flex.flex-row {
+        justify-content: space-between;
+        width: 100%;
+      }
+
+      ::ng-deep .mat-icon,
+      ::ng-deep button.mat-mdc-icon-button .mat-icon {
+        color: var(--tb-brand-green) !important;
+      }
+
+      ::ng-deep .tb-user-menu-flyout-list button:hover .mat-icon {
+        color: #ffffff !important;
+      }
+
+      ::ng-deep .tb-user-info.lt-lg\:\!hidden {
+        display: flex !important;
+      }
+
+      ::ng-deep .tb-user-display-name,
+      ::ng-deep .tb-user-authority {
+        color: var(--tb-brand-green);
+      }
+      &.tb-collapsed {
+        padding: var(--tb-space-2) 0;
+        display: flex;
+        justify-content: center;
+        box-sizing: border-box;
+
+        ::ng-deep section.flex.flex-row {
+          justify-content: center;
+        }
+
+        ::ng-deep button.mat-mdc-menu-trigger {
+          display: none !important;
+        }
+      }
+    }
+  }
+  .tb-primary-toolbar {
+    z-index: 9999;
+  position: relative;
+  h1 {
+    font-size: 24px !important;
+    font-weight: 400 !important;
+  }
+  }
+  .tb-main-content {
+    overflow: auto;
+    position: relative;
+  }
+}
+
+.tb-nav-header-toolbar {
+  & > div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    .tb-logo-text {
+      color: #fff;
+      font-weight: 700;
+      font-size: 20px;
+      white-space: nowrap;
+      margin-top: 6px;
+    }
+  }
+}
+
+.tb-topbar-brand {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 100%;
+  overflow: hidden;
+  margin-left: var(--tb-space-4);
+  padding-right: var(--tb-space-4);
+}
+
+.tb-topbar-logo {
+  height: 56px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+}
+.tb-topbar-nav {
+  align-items: center;
+  height: 100%;
+  flex: 1;
+  justify-content: center;
+
+  @media (max-width: 959px) {
+    display: none !important;
+  }
+}
+
+.tb-topbar-link {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0 var(--tb-space-3);
+  height: 100%;
+}
+
+.tb-topbar-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.tb-topbar-dropdown-panel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: max-content;
+  min-width: 0;
+  z-index: 99999;
+  flex-direction: column;
+  border: 1px solid #E0E0E0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.tb-entities-dropdown-panel,
+.tb-profiles-dropdown-panel,
+.tb-resources-dropdown-panel {
+  min-width: 150px;
+}
+
+.tb-topbar-dropdown:hover .tb-topbar-dropdown-panel {
+  display: flex;
+}
+
+.tb-topbar-dropdown-item {
+  display: block;
+  padding: var(--tb-space-2) var(--tb-space-3);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.tb-topbar-caret {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+}
+// ============================================================
+// Header Color & Visual Pass
+// White header, green brand text/links, hover states, dropdowns,
+// sticky positioning. Scoped to the primary toolbar only.
+// ============================================================
+
+:host ::ng-deep .tb-primary-toolbar {
+  background-color: #ffffff !important;
+  color: var(--tb-brand-green);
+  height: 64px;
+  min-height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  font-size: 14px;
+
+  a, span, button.mat-mdc-button-base:not(.mat-mdc-icon-button), .tb-topbar-link, .tb-user-display-name, .tb-user-authority {
+    font-size: 14px;
+  }
+
+  .mat-icon {
+    font-size: 24px;
+    height: 24px;
+    width: 24px;
+  }
+
+  .mat-icon,
+  button.mat-mdc-icon-button .mat-icon {
+    color: var(--tb-brand-green) !important;
+  }
+
+  .mat-mdc-icon-button:hover .mat-icon {
+    color: #4CAF50 !important;
+  }
+
+  tb-github-badge {
+    display: none !important;
+  }
+}
+
+.tb-topbar-link {
+  color: var(--tb-brand-green);
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--tb-transition-fast) var(--tb-ease);
+
+  &:hover {
+    color: #4CAF50;
+  }
+}
+
+.tb-topbar-link-active {
+  color: #4CAF50;
+}
+
+.tb-topbar-caret {
+  color: inherit;
+}
+
+.tb-topbar-dropdown-panel {
+  background-color: #FFFFFF;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.tb-topbar-dropdown-item {
+  display: block;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #1F2933;
+  text-decoration: none;
+  border: none;
+  border-bottom: 1px solid rgba(0, 46, 1, 0.06);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  &:last-child {
+    border-bottom: none;
+  }
+  transition: background 0.15s ease, color 0.15s ease;
+  &:hover {
+    background-color: #002e01;
+    color: #FFFFFF;
+  }
+  &:focus,
+  &:focus-visible,
+  &:active {
+    outline: none;
+    text-decoration: none;
+  }
+}
+// Right-side: user menu text, avatar icon
+:host ::ng-deep tb-user-menu {
+  .tb-user-display-name,
+  .tb-user-authority {
+    color: var(--tb-brand-green);
+  }
+
+  .mat-icon.tb-mini-avatar {
+    color: var(--tb-brand-green);
+  }
+}
+.tb-topbar-right {
+  margin-left: auto;
+  align-items: center;
+  flex-shrink: 0;
+}
+:host ::ng-deep .tb-primary-toolbar tb-notification-bell .mat-badge-content {
+  min-width: 18px;
+  width: auto;
+  height: 16px;
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: 16px;
+  border-radius: 8px;
+}
+// ============================================================
+// Sidebar collapse mechanics (Step 2) — width + label hiding only.
+// Visual polish (colors, hover states) comes in a later step.
+// ============================================================
+
+mat-sidenav.tb-site-sidenav.tb-sidebar-collapsed {
+  width: 64px;
+  border-right: 1px solid rgba(0, 46, 1, 0.25);
+
+  ::ng-deep a.mat-mdc-button.mat-mdc-button-base .mat-icon {
+    font-size: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  ::ng-deep .mat-drawer-inner-container {
+    overflow: visible !important;
+  }
+
+  ::ng-deep .mat-drawer-container {
+    overflow: visible !important;
+  }
+
+  ::ng-deep .tb-side-menu > li {
+    height: auto !important;
+    min-height: 0 !important;
+    flex: 1 1 0 !important;
+
+    > tb-menu-link span {
+      display: none;
+    }
+    > tb-menu-link,
+    > tb-menu-toggle {
+      flex: 1;
+      min-height: 0;
+    }
+    > tb-menu-link,
+    > tb-menu-toggle {
+      height: 100% !important;
+    }
+
+    > tb-menu-link a.mat-mdc-button.mat-mdc-button-base,
+    > tb-menu-toggle .tb-button-toggle.mat-mdc-button-base {
+      justify-content: center;
+      align-items: center;
+      padding: 0 !important;
+      flex: 1;
+      min-height: 0;
+      height: 100% !important;
+      .mat-icon {
+        margin: 0 !important;
+      }
+    }
+  }
+}
+
+.tb-sidebar-top-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: var(--tb-space-3) var(--tb-space-4);
+  gap: var(--tb-space-3);
+  border-bottom: 1px solid rgba(0, 0, 0, .12);
+  box-sizing: border-box;
+  flex-shrink: 0;
+  &.tb-collapsed {
+    justify-content: center;
+    padding: var(--tb-space-2) 0;
+  }
+}
+
+.tb-sidebar-search,
+  .tb-header-search {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background-color: #f5f5f5;
+  border: 1.5px solid var(--tb-brand-green);
+  border-radius: 8px;
+  padding: 0 var(--tb-space-2);
+  height: 32px;
+
+  .tb-search-icon {
+    color: var(--tb-brand-green) !important;
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0;
+  }
+
+  .tb-search-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-family: "Rethink Sans", sans-serif;
+    font-size: 13px;
+    color: var(--tb-brand-green);
+    padding: 0 var(--tb-space-1);
+
+    &::placeholder {
+      color: rgba(0, 46, 1, 0.4);
+    }
+  }
+
+  .tb-search-results {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: #FFFFFF;
+    border: 1px solid #E0E0E0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+    z-index: 99999;
+    max-height: 300px;
+    overflow-y: auto;
+    .tb-search-result-item {
+      display: flex;
+      align-items: center;
+      gap: var(--tb-space-2);
+      padding: 10px 14px;
+      color: #1F2933;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(0, 46, 1, 0.06);
+      font-size: 13px;
+      transition: background 0.15s ease, color 0.15s ease;
+      &:last-child {
+        border-bottom: none;
+      }
+      &:hover {
+        background-color: #002e01;
+        color: #FFFFFF;
+        .tb-search-result-icon {
+          color: #FFFFFF !important;
+        }
+      }
+      .tb-search-result-icon {
+        font-size: 16px !important;
+        width: 16px !important;
+        height: 16px !important;
+        color: #1F2933;
+        flex-shrink: 0;
+      }
+    }
+  }
+}
+
+.tb-sidebar-collapse-toggle {
+  flex-shrink: 0;
+  margin-left: auto;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  overflow: hidden;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease;
+  &:hover {
+    background-color: rgba(0, 46, 1, 0.08) !important;
+  }
+  .tb-panel-left-icon {
+    width: 22px !important;
+    height: 22px !important;
+    flex-shrink: 0;
+  }
+}
+.tb-sidebar-top-bar.tb-collapsed .tb-sidebar-collapse-toggle {
+  margin-left: 0;
+}
+
+/* BoxTech: sidebar logo, now occupying the spot the search bar used to be in */
+.tb-sidebar-brand {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 56px;
+  .tb-sidebar-logo {
+    height: 48px;
+    max-width: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+}
+/* BoxTech: header search bar, now sitting inline next to the Resources dropdown.
+   Shares icon/input/results styling with .tb-sidebar-search via the selector
+   extension above; these overrides just resize it for the header row. */
+.tb-header-search {
+  flex: 0 0 auto;
+  width: 220px;
+  margin-left: var(--tb-space-4);
+
+  @media (max-width: 1200px) {
+    width: 160px;
+  }
+}
+/* BoxTech: fix search-result icon color inside the header search box.
+   .tb-primary-toolbar's broad ".mat-icon { color: var(--tb-brand-green) !important }"
+   rule (Header Color & Visual Pass section) was catching these too. Chained
+   selector below outranks it on specificity. */
+:host ::ng-deep .tb-primary-toolbar .tb-header-search .tb-search-results .tb-search-result-item .tb-search-result-icon {
+  color: #1F2933 !important;
+}
+:host ::ng-deep .tb-primary-toolbar .tb-header-search .tb-search-results .tb-search-result-item:hover .tb-search-result-icon {
+  color: #FFFFFF !important;
+}
+// ============================================================
+// TME Customer Theme Override — scoped to Trakker Middle East
+// (customerId 57a0fa00-8d00-11f1-9902-cdf828be2d57) only.
+// Applies via .tb-theme-tme class on mat-sidenav-container.
+// Sidebar + header only, per scope.
+// ============================================================
+
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+
+  // --- Sidebar ---
+  mat-sidenav.tb-site-sidenav {
+    background-color: #17283A !important;
+    width: 240px !important;
+    border-right: 1px solid rgba(245, 181, 46, 0.15);
+
+    .tb-side-menu-toolbar {
+      background-color: #17283A !important;
+    }
+
+    .tb-sidebar-top-bar {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    // Default nav icon/text color (muted white)
+    a.mat-mdc-button.mat-mdc-button-base:not(:hover):not(.tb-active) .mat-icon {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+    a.mat-mdc-button.mat-mdc-button-base:not(.tb-active) span {
+      color: rgba(255, 255, 255, 0.75);
+    }
+
+    // Active nav item: subtle lighter navy + gold left indicator
+    a.mat-mdc-button.mat-mdc-button-base.tb-active {
+      background-color: #21364D !important;
+      border-left: 3px solid #F5B52E !important;
+
+      .mat-icon {
+        color: #F5B52E !important;
+      }
+      span {
+        color: #ffffff;
+      }
+    }
+
+    // Hover state
+    a.mat-mdc-button.mat-mdc-button-base:hover:not(.tb-active) {
+      background-color: rgba(255, 255, 255, 0.04);
+      .mat-icon {
+        color: #ffffff !important;
+      }
+    }
+
+    .tb-sidebar-collapse-toggle .tb-panel-left-icon {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+    .tb-sidebar-collapse-toggle:hover {
+      background-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    // Profile card at bottom
+    .tb-sidebar-account {
+      background-color: #1C3045 !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 13px !important;
+      margin: 8px 16px 16px !important;
+      padding: 11px !important;
+      transition: background-color 0.18s ease;
+
+      &:hover {
+        background-color: #21364D !important;
+      }
+
+      .mat-icon.mat-icon:not(.tb-user-menu-flyout-list .mat-icon),
+      button.mat-mdc-icon-button .mat-icon.mat-icon:not(.tb-user-menu-flyout-list .mat-icon) {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+      .mat-icon.tb-mini-avatar {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: 40px !important;
+        margin: auto 10px auto 0 !important;
+        color: rgba(255, 255, 255, 0.65) !important;
+      }
+      .tb-user-menu-flyout-list button:hover .mat-icon {
+        color: #17283A !important;
+      }
+      .tb-user-display-name {
+        color: #ffffff !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+      }
+      .tb-user-authority {
+        color: rgba(255, 255, 255, 0.55) !important;
+        font-size: 12px !important;
+      }
+
+      &.tb-collapsed {
+        margin: 8px 12px 16px !important;
+        padding: 8px !important;
+
+        .mat-icon.tb-mini-avatar {
+          margin: 0 auto !important;
+        }
+      }
+    }
+  }
+
+  // --- Header ---
+  .tb-primary-toolbar {
+    background-color: #17283A !important;
+    color: #ffffff;
+    border-bottom: 2px solid #F5B52E;
+    box-shadow: none;
+
+    .mat-icon,
+    button.mat-mdc-icon-button .mat-icon {
+      color: rgba(255, 255, 255, 0.85) !important;
+    }
+    .mat-mdc-icon-button:hover .mat-icon {
+      color: #F5B52E !important;
+    }
+
+    .tb-topbar-link {
+      color: rgba(255, 255, 255, 0.85);
+      &:hover {
+        color: #F5B52E;
+      }
+    }
+    .tb-topbar-link-active {
+      color: #F5B52E;
+    }
+  }
+
+  tb-notification-bell .mat-badge-content {
+    background-color: #F5B52E;
+    color: #17283A;
+  }
+}
+mat-sidenav.tb-site-sidenav.tb-sidebar-collapsed.tb-theme-tme,
+:host ::ng-deep mat-sidenav-container.tb-theme-tme mat-sidenav.tb-site-sidenav.tb-sidebar-collapsed {
+  width: 76px !important;
+}
+
+// TME logo/branding container — left aligned per spec, overrides the
+// shared .tb-sidebar-brand (centered) used by BoxTech's theme.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme .tb-sidebar-brand.tb-sidebar-brand-tme {
+  justify-content: flex-start !important;
+  padding: 24px 24px 20px !important;
+  min-height: 72px;
+  height: auto !important;
+
+  .tb-sidebar-logo-tme {
+    height: auto !important;
+    max-height: 48px;
+    max-width: 170px;
+    width: auto !important;
+    object-fit: contain;
+  }
+}
+
+// TME collapsed sidebar — pin mark only, centered
+:host ::ng-deep mat-sidenav-container.tb-theme-tme .tb-sidebar-brand-collapsed-tme {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px 0 20px;
+
+  .tb-sidebar-logo-mark-tme {
+    height: 34px;
+    width: auto;
+    object-fit: contain;
+  }
+}
+
+// Extra breathing room between logo and MAIN label (spec: 24-28px total)
+:host ::ng-deep mat-sidenav-container.tb-theme-tme .tb-menu-section-label:first-of-type {
+  margin-top: 8px !important;
+}
+
+// Strip the BoxTech-theme green item borders inside TME sidebar — spec
+// calls for borderless nav items with only background/gold-indicator states.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .tb-side-menu > li {
+    border: none !important;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+  }
+}
+
+// TME nav item sizing — larger rows/icons/text than the shared BoxTech
+// 48px-row default, per spec (52-56px height, 20-22px icons).
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .tb-side-menu > li {
+    height: 54px !important;
+    min-height: 54px !important;
+
+    &.tb-expanded {
+      height: auto !important;
+    }
+  }
+
+  a.mat-mdc-button.mat-mdc-button-base {
+    padding: 0 16px !important;
+
+    .mat-icon {
+      font-size: 22px !important;
+      width: 22px !important;
+      height: 22px !important;
+    }
+
+    span {
+      font-size: 15px !important;
+    }
+  }
+}
+
+// Strip green borders from nested Entities dropdown items (Devices/Assets/
+// Entity views) in TME sidebar — same fix as the top-level list, different
+// selector since nested children render via tb-menu-toggle's own list.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .tb-menu-toggle-list li {
+    border-bottom: none !important;
+    border-top: none !important;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+    &:first-child {
+      border-top: none !important;
+    }
+  }
+}
+
+// TME collapse control — relocated below the account card, per spec.
+// Separate from the original .tb-sidebar-collapse-toggle (BoxTech, in top bar).
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .tb-sidebar-collapse-bar-tme {
+    display: flex;
+    justify-content: flex-end;
+    padding: 4px 16px 12px;
+    flex-shrink: 0;
+
+    &.tb-collapsed {
+      justify-content: center;
+      padding: 4px 0 12px;
+    }
+  }
+
+  .tb-sidebar-collapse-toggle-tme {
+    width: 42px !important;
+    height: 40px !important;
+    border-radius: 9px !important;
+    background-color: transparent !important;
+    transition: background-color 0.18s ease;
+
+    .mat-icon {
+      color: rgba(255, 255, 255, 0.65) !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.06) !important;
+      .mat-icon {
+        color: #ffffff !important;
+      }
+    }
+
+    &:active {
+      background-color: rgba(255, 255, 255, 0.10) !important;
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(245, 181, 46, 0.65);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// Header-position variant of the TME collapse toggle (start of top bar).
+// Reuses .tb-sidebar-collapse-toggle-tme's colors/hover/focus states.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .tb-sidebar-collapse-toggle-tme-header {
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+}
+
+// Sweep fix: replace remaining BoxTech-green leaks with TME navy across
+// nav links, toggles, search box, and any Material components rendered
+// within the TME-themed page (found via full-page computed-style scan).
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  a.mat-mdc-button.mat-mdc-button-base:not(.tb-menu-flyout-list a),
+  .tb-button-toggle {
+    color: #17283A !important;
+    border-color: #17283A !important;
+  }
+
+  .tb-header-search,
+  .tb-search-input {
+    color: #17283A !important;
+    border-color: #17283A !important;
+  }
+
+  .mat-button-toggle-button {
+    background-color: #17283A !important;
+    border-color: #17283A !important;
+  }
+
+  mat-toolbar.mat-mdc-table-toolbar {
+    background-color: #17283A !important;
+  }
+}
+
+// Sweep fix #2: FAB toolbar (dashboard add-widget/edit floating button)
+// and its icon buttons — found via full-page scan on /home.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .mdc-fab.mat-mdc-fab-base,
+  .mat-fab-toolbar-background {
+    background-color: #17283A !important;
+  }
+
+  a.mdc-button--outlined.mat-mdc-outlined-button {
+    color: #17283A !important;
+    border-color: #17283A !important;
+  }
+
+  tb-icon.mat-icon.mat-primary,
+  tb-icon.mat-icon.mat-primary svg,
+  tb-icon.mat-icon.mat-primary path {
+    color: #17283A !important;
+    fill: #17283A !important;
+  }
+}
+
+// Sweep fix #3: text/icon color for the components whose background was
+// switched to navy above — must match sidebar-item default text color
+// (rgba(255,255,255,0.65)) for readability against the new dark background.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .mat-button-toggle-button {
+    color: rgba(255, 255, 255, 0.65) !important;
+
+    .mat-icon {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+  }
+
+  mat-toolbar.mat-mdc-table-toolbar {
+    color: rgba(255, 255, 255, 0.65) !important;
+
+    .mat-icon,
+    h2, h3, span {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+  }
+
+  .mdc-fab.mat-mdc-fab-base {
+    .mat-icon,
+    tb-icon {
+      color: rgba(255, 255, 255, 0.65) !important;
+      fill: rgba(255, 255, 255, 0.65) !important;
+    }
+  }
+}
+
+// Sweep fix #4: mat-select filter dropdowns inside navy toolbars
+// (e.g. "Entity view type" filter) — label, value, arrow, and underline
+// were all still dark/black-on-black, effectively invisible.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  mat-toolbar.mat-mdc-table-toolbar {
+    .mat-mdc-form-field-label,
+    .mdc-floating-label,
+    .mat-mdc-select-value-text,
+    .mat-mdc-select-min-line,
+    .mat-mdc-input-element {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+
+    .mat-mdc-input-element::placeholder {
+      color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .mat-mdc-form-field-icon-suffix .mat-icon,
+    button.mat-mdc-icon-button .mat-icon {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+
+    .mat-mdc-select-arrow {
+      color: rgba(255, 255, 255, 0.65) !important;
+    }
+
+    .mdc-line-ripple::before {
+      border-bottom-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .mdc-line-ripple::after {
+      border-bottom-color: rgba(255, 255, 255, 0.65) !important;
+    }
+  }
+}
+
+// Sweep fix #5: hover-state green backgrounds on dropdown/accordion/flyout
+// menu items — three separate components, all still using BoxTech green
+// on hover instead of TME navy.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+
+  // Three-dot account menu (Account / Logout) — renders in a CDK overlay
+  // outside this component's normal DOM tree, needs global-reaching selector
+  .tb-user-menu-items button:hover,
+  .tb-user-menu-flyout-list button:hover {
+    background-color: #17283A !important;
+
+    .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+
+  // Entities accordion expanded sub-items (Devices/Assets/Entity views) hover
+  // — matches the standard top-level nav-item hover exactly (line 637-642)
+  .tb-menu-toggle-list a.mat-mdc-button:hover {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+    .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+
+  // Collapsed-sidebar hover flyout (same items, shown differently when collapsed)
+  .tb-menu-flyout-list a.mat-mdc-button:hover {
+    background-color: #17283A !important;
+
+    .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+}
+
+// The account three-dot menu specifically renders in a global CDK overlay
+// (outside mat-sidenav-container entirely), so it needs its own unscoped-
+// but-still-conditional rule. Since we can't reach isTmeCustomer here in
+// pure CSS, this targets the overlay panel structurally instead.
+:host ::ng-deep .tb-user-menu-items button:hover {
+  background-color: #17283A;
+}
+
+// Account menu (mat-menu) renders in a CDK overlay appended to <body>,
+// completely outside mat-sidenav-container's DOM — .tb-theme-tme scoping
+// can never reach it. Scoped instead via a body class toggled in TS.
+::ng-deep body.tb-theme-tme-active .tb-user-menu-items button:hover {
+  background-color: #17283A !important;
+
+  .mat-icon {
+    color: #ffffff !important;
+  }
+}
+
+// Sweep fix #6: collapsed Entities toggle icon hover — was hardcoded
+// BoxTech green in menu-toggle.component.scss's collapsed-mode block.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme {
+  .tb-menu-toggle-wrapper.tb-collapsed .tb-button-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.04) !important;
+  }
+}
+
+// Sweep fix #7: Entities collapsed-flyout rebuilt to exactly match the
+// account flyout's styling (background/border/radius/shadow/item layout/
+// hover), overriding whatever inconsistent label-display behavior exists
+// in the base menu-toggle flyout CSS.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme .tb-menu-flyout-list {
+  background-color: #FFFFFF !important;
+  border: 1px solid #E0E0E0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+
+  li {
+    border-bottom: 1px solid rgba(0, 46, 1, 0.06) !important;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+    &:first-child {
+      border-top: 1px solid rgba(0, 46, 1, 0.06) !important;
+    }
+  }
+
+  a.mat-mdc-button {
+    display: flex !important;
+    align-items: center !important;
+    width: 100% !important;
+    height: 40px !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box !important;
+    color: #1F2933 !important;
+    font-size: 13px !important;
+    text-align: left !important;
+
+    .mdc-button__label {
+      display: flex !important;
+      align-items: center !important;
+      gap: var(--tb-space-2) !important;
+      span {
+        color: #1F2933 !important;
+      }
+    }
+    &:hover .mdc-button__label span {
+      color: #FFFFFF !important;
+    }
+    .mat-icon {
+      color: #17283A !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+      margin-right: 8px !important;
+    }
+
+    &:hover {
+      background-color: #17283A !important;
+      color: #FFFFFF !important;
+
+      .mat-icon {
+        color: #FFFFFF !important;
+      }
+    }
+  }
+}
+
+// Sweep fix #8: account flyout icon color at rest (navy, not default gray/green)
+::ng-deep body.tb-theme-tme-active .tb-user-menu-flyout-list .mat-icon,
+::ng-deep body.tb-theme-tme-active .tb-user-menu-items .mat-icon {
+  color: #17283A !important;
+}
+
+// Sweep fix #9: loading progress bar — was Material's "warn" (red) palette,
+// switched to TME navy via the component's own CSS custom properties.
+:host ::ng-deep mat-sidenav-container.tb-theme-tme mat-progress-bar.mat-warn {
+  --mdc-linear-progress-active-indicator-color: #17283A !important;
+  --mdc-linear-progress-track-color: rgba(23, 40, 58, 0.2) !important;
+
+  .mdc-linear-progress__bar-inner {
+    border-color: #17283A !important;
+  }
+  .mdc-linear-progress__buffer-bar,
+  .mdc-linear-progress__buffer-dots {
+    background-color: rgba(23, 40, 58, 0.2) !important;
+  }
+}
+
+// Sweep fix #10: autocomplete dropdown panel option hover (e.g. "Asset
+// profile" filter) — CDK overlay appended to <body>, needs body-class
+// scoping like the account menu (mat-sidenav-container.tb-theme-tme
+// scoping cannot reach it).
+::ng-deep body.tb-theme-tme-active .mat-mdc-autocomplete-panel mat-option:hover:not(.mdc-list-item--disabled) {
+  background-color: #17283A !important;
+  color: #ffffff !important;
+}
+
+// Sweep fix #11: comprehensive CDK-overlay hover fix — covers every
+// Angular Material dropdown/menu type (mat-select panel, mat-autocomplete
+// panel, mat-menu) in one rule, since all of them render outside
+// mat-sidenav-container's DOM and need body-class scoping instead.
+::ng-deep body.tb-theme-tme-active {
+  // mat-select dropdown panel options
+  .mat-mdc-select-panel mat-option:hover:not(.mdc-list-item--disabled),
+  .cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+    background-color: #17283A !important;
+    color: #ffffff !important;
+
+    .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+
+  // mat-autocomplete dropdown panel options
+  .mat-mdc-autocomplete-panel mat-option:hover:not(.mdc-list-item--disabled) {
+    background-color: #17283A !important;
+    color: #ffffff !important;
+
+    .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+
+  // mat-menu items (any menu, not just the account menu)
+  .mat-mdc-menu-panel .mat-mdc-menu-item:hover:not([disabled]) {
+    background-color: #17283A !important;
+    color: #ffffff !important;
+
+    .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+
+  // Selected/highlighted state (keyboard nav or pre-selected value) —
+  // same treatment as hover, since Material applies this independently
+  .mat-mdc-option.mat-mdc-option-active,
+  .mat-mdc-option.mdc-list-item--selected {
+    background-color: rgba(23, 40, 58, 0.08) !important;
+  }
+}

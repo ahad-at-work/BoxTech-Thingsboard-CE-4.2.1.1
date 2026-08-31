@@ -1,0 +1,158 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+// ============================================
+// BoxTech Global Angular Material Dropdown Theme
+// Applies BoxTech dark-green style to native
+// mat-select / mat-autocomplete / mat-menu panels
+// sitewide. Must be global (not component-scoped)
+// since these overlays render into .cdk-overlay-container.
+// ============================================
+
+// ---- mat-select & mat-autocomplete option panel ----
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel {
+  background: #FFFFFF !important;
+  border: 1px solid #E0E0E0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+  padding: 4px 0 !important;
+}
+
+// ---- individual options (shared by select + autocomplete) ----
+.mat-mdc-option {
+  min-height: 40px !important;
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+  color: #1F2933 !important;
+  border-bottom: 1px solid rgba(0, 46, 1, 0.06) !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+
+  &:last-child {
+    border-bottom: none !important;
+  }
+
+  .mdc-list-item__primary-text {
+    color: inherit !important;
+  }
+
+  &:hover:not(.mdc-list-item--disabled),
+  &.mat-mdc-option-active {
+    background: #002e01 !important;
+    color: #FFFFFF !important;
+  }
+
+  &.mdc-list-item--selected,
+  &.mat-mdc-option-selected {
+    background: rgba(0, 46, 1, 0.08) !important;
+    color: #002e01 !important;
+    font-weight: 600 !important;
+
+    .mdc-list-item__primary-text {
+      color: #002e01 !important;
+      font-weight: 600 !important;
+    }
+  }
+
+  // restyle (not hide) the multi-select checkbox to match theme
+  .mat-pseudo-checkbox {
+    color: rgba(126, 217, 87, 0.5) !important;
+  }
+  .mat-pseudo-checkbox-checked,
+  .mat-pseudo-checkbox-indeterminate {
+    background: #002e01 !important;
+    color: #FFFFFF !important;
+  }
+}
+
+// ---- mat-menu (three-dot menus, user menu, row actions) ----
+.mat-mdc-menu-panel {
+  background: #FFFFFF !important;
+  border: 1px solid #E0E0E0 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
+}
+
+.mat-mdc-menu-content {
+  padding: 4px 0 !important;
+}
+
+.mat-mdc-menu-item {
+  min-height: 40px !important;
+  padding: 10px 14px !important;
+  font-size: 13px !important;
+  color: #1F2933 !important;
+  border-bottom: 1px solid rgba(0, 46, 1, 0.06) !important;
+  transition: background 0.15s ease, color 0.15s ease !important;
+
+  &:last-child {
+    border-bottom: none !important;
+  }
+
+  .mat-mdc-menu-item-text,
+  .mat-icon {
+    color: inherit !important;
+  }
+
+  &:hover:not([disabled]),
+  &.cdk-program-focused,
+  &.cdk-keyboard-focused {
+    background: #002e01 !important;
+    color: #FFFFFF !important;
+  }
+
+  &[disabled] {
+    color: rgba(241, 245, 249, 0.35) !important;
+  }
+}
+
+// ---- Force-override Material's CSS custom properties for text color ----
+// theme.scss sets these globally via $tb-primary-color; class-level
+// `color: inherit` isn't enough since MDC resolves color through vars.
+// html body prefix bumps specificity above theme.scss's broader selector.
+html body {
+  .mat-mdc-option,
+  .mat-mdc-menu-item {
+    --mdc-list-list-item-label-text-color: #1F2933;
+    --mdc-list-list-item-supporting-text-color: #1F2933;
+    --mat-option-label-text-color: #1F2933;
+    --mat-menu-item-label-text-color: #1F2933;
+    --mat-menu-item-icon-color: #1F2933;
+  }
+
+  .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+  .mat-mdc-option.mat-mdc-option-active,
+  .mat-mdc-menu-item:hover:not([disabled]) {
+    --mdc-list-list-item-label-text-color: #002e01;
+    --mat-option-label-text-color: #002e01;
+    --mat-menu-item-label-text-color: #002e01;
+  }
+
+  .mat-mdc-option.mdc-list-item--selected,
+  .mat-mdc-option.mat-mdc-option-selected {
+    --mdc-list-list-item-label-text-color: #002e01;
+    --mat-option-label-text-color: #002e01;
+  }
+
+  // Belt-and-suspenders: directly hit the actual text nodes with
+  // higher specificity than theme.scss's selector, in case the vars
+  // above still lose the cascade for any reason.
+  .mat-mdc-option .mdc-list-item__primary-text,
+  .mat-mdc-option .mdc-list-item__primary-text span,
+  .mat-mdc-menu-item .mat-mdc-menu-item-text,
+  .mat-mdc-menu-item .mdc-list-item__primary-text {
+    color: inherit !important;
+  }
+}
