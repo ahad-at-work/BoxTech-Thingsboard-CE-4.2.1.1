@@ -307,13 +307,17 @@
                 class="no-data-found flex items-center justify-center">{{ 'common.loading' | translate }}</span>
         </div>
         <mat-divider *ngIf="displayPagination"></mat-divider>
-        <mat-paginator *ngIf="displayPagination"
-                       [length]="dataSource.total() | async"
-                       [pageIndex]="pageLink.page"
-                       [pageSize]="pageLink.pageSize"
-                       [pageSizeOptions]="pageSizeOptions"
-                       [hidePageSize]="hidePageSize"
-                       showFirstLastButtons></mat-paginator>
+        <ng-container *ngIf="displayPagination">
+          <mat-paginator #tablePaginator
+                         [length]="dataSource.total() | async"
+                         [pageIndex]="pageLink.page"
+                         [pageSize]="pageLink.pageSize"
+                         [pageSizeOptions]="pageSizeOptions"
+                         [hidePageSize]="hidePageSize"
+                         showFirstLastButtons></mat-paginator>
+          <!-- BoxTech theme shows this numbered pager instead (it drives the paginator above). -->
+          <tb-page-navigator [paginator]="tablePaginator"></tb-page-navigator>
+        </ng-container>
       </div>
     </div>
   </mat-drawer-content>

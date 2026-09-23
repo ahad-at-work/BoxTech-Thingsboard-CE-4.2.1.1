@@ -95,3 +95,24 @@
 :host ::ng-deep .mat-sort-header-sorted .mat-sort-header-arrow {
   opacity: 1 !important;
 }
+
+// BoxTech: paginator sits directly under the last row instead of at the
+// bottom of the card. The table area only grows to fit its rows; when the
+// rows exceed the card it still scrolls (overflow: auto => min-height: 0).
+:host-context(.tb-theme-boxtech) .tb-entity-table .tb-entity-table-content .table-container.flex-1 {
+  flex: 0 1 auto;
+}
+
+// BoxTech: numbered green pager replaces the Material paginator's UI (the
+// paginator itself stays in the DOM and keeps driving the table's paging).
+tb-page-navigator {
+  display: none;
+}
+:host-context(.tb-theme-boxtech) {
+  .tb-entity-table-content > mat-paginator {
+    display: none;
+  }
+  tb-page-navigator {
+    display: block;
+  }
+}

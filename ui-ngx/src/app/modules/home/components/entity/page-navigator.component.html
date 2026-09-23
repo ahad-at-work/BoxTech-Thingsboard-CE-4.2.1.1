@@ -1,0 +1,59 @@
+<!--
+
+    Copyright © 2016-2025 The Thingsboard Authors
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+-->
+<nav class="tb-pager" aria-label="Pagination">
+  <label class="tb-pager-size" *ngIf="showPageSize">
+    <span>Rows per page</span>
+    <select [value]="pageSize" (change)="changePageSize(+$any($event.target).value)">
+      <option *ngFor="let size of pageSizeOptions" [value]="size" [selected]="size === pageSize">{{ size }}</option>
+    </select>
+  </label>
+
+  <span class="tb-pager-summary">
+    Showing <b>{{ rangeStart | number }}–{{ rangeEnd | number }}</b> of <b>{{ length | number }}</b> results
+  </span>
+
+  <span class="tb-pager-divider" aria-hidden="true"></span>
+
+  <button type="button" class="tb-pager-step"
+          [disabled]="pageIndex === 0"
+          (click)="goTo(pageIndex - 1)">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M15 18l-6-6 6-6"/>
+    </svg>
+    <span class="tb-pager-step-label">Previous</span>
+  </button>
+
+  <div class="tb-pager-pages">
+    <ng-container *ngFor="let page of pages; trackBy: trackByIndex">
+      <span *ngIf="page === null" class="tb-pager-ellipsis">…</span>
+      <button *ngIf="page !== null" type="button" class="tb-pager-page"
+              [class.tb-active]="page === pageIndex"
+              [attr.aria-current]="page === pageIndex ? 'page' : null"
+              (click)="goTo(page)">{{ page + 1 }}</button>
+    </ng-container>
+  </div>
+
+  <button type="button" class="tb-pager-step"
+          [disabled]="pageIndex >= pageCount - 1"
+          (click)="goTo(pageIndex + 1)">
+    <span class="tb-pager-step-label">Next</span>
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 18l6-6-6-6"/>
+    </svg>
+  </button>
+</nav>

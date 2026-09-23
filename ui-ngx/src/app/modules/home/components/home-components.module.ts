@@ -19,6 +19,7 @@ import { CommonModule } from '@angular/common';
 import { SharedModule } from '@app/shared/shared.module';
 import { AddEntityDialogComponent } from '@home/components/entity/add-entity-dialog.component';
 import { EntitiesTableComponent } from '@home/components/entity/entities-table.component';
+import { PageNavigatorComponent } from '@home/components/entity/page-navigator.component';
 import { DetailsPanelComponent } from '@home/components/details-panel.component';
 import { EntityDetailsPanelComponent } from '@home/components/entity/entity-details-panel.component';
 import { AuditLogDetailsDialogComponent } from '@home/components/audit-log/audit-log-details-dialog.component';
@@ -374,7 +375,8 @@ import { ResourcesLibraryComponent } from "@home/components/resources/resources-
     StatesControllerModule,
     DeviceCredentialsModule,
     DeviceProfileCommonModule,
-    EntityDebugSettingsButtonComponent
+    EntityDebugSettingsButtonComponent,
+    PageNavigatorComponent
   ],
   exports: [
     RouterTabsComponent,

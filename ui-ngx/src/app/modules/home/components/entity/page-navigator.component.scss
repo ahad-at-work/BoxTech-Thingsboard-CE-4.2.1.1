@@ -1,0 +1,166 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+:host {
+  display: block;
+}
+
+.tb-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 56px;
+  padding: 8px 16px;
+  box-sizing: border-box;
+  font-size: 13px;
+  color: var(--bx-text, #0f2417);
+  user-select: none;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+  &:focus-visible {
+    box-shadow: 0 0 0 3px rgba(95, 208, 143, 0.45);
+  }
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.tb-pager-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-weight: 500;
+  color: var(--bx-text-muted, rgba(15, 36, 23, 0.58));
+  transition: background-color 160ms ease, color 160ms ease;
+  &:hover:not(:disabled) {
+    color: var(--bx-green-900, #002e01);
+    background-color: var(--bx-mint-50, #eff9f3);
+  }
+  &:disabled {
+    opacity: 0.38;
+  }
+}
+
+.tb-pager-pages {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tb-pager-page {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-weight: 500;
+  color: var(--bx-text, #0f2417);
+  font-variant-numeric: tabular-nums;
+  transition: background-color 160ms ease, color 160ms ease, box-shadow 200ms ease, transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  &:hover:not(.tb-active) {
+    background-color: var(--bx-mint-100, #dcf5e6);
+    color: var(--bx-green-900, #002e01);
+  }
+  &.tb-active {
+    color: #ffffff;
+    font-weight: 700;
+    background: linear-gradient(160deg, var(--bx-green-600, #17733a) 0%, var(--bx-green-900, #002e01) 100%);
+    box-shadow: 0 0 0 3px rgba(95, 208, 143, 0.28), 0 6px 14px -6px rgba(0, 46, 1, 0.6);
+    transform: scale(1.04);
+    cursor: default;
+  }
+}
+
+.tb-pager-ellipsis {
+  min-width: 24px;
+  text-align: center;
+  color: var(--bx-text-faint, rgba(15, 36, 23, 0.38));
+  letter-spacing: 1px;
+}
+
+.tb-pager-divider {
+  width: 1px;
+  height: 20px;
+  margin: 0 8px 0 10px;
+  background: rgba(0, 46, 1, 0.12);
+}
+
+.tb-pager-size {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-right: 12px;
+  color: var(--bx-text-muted, rgba(15, 36, 23, 0.58));
+  white-space: nowrap;
+  select {
+    height: 30px;
+    padding: 0 26px 0 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 46, 1, 0.14);
+    font: inherit;
+    font-weight: 600;
+    color: var(--bx-text, #0f2417);
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23002e01' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 8px center;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+    &:hover {
+      border-color: rgba(31, 143, 77, 0.45);
+    }
+    &:focus-visible {
+      border-color: rgba(31, 143, 77, 0.6);
+      box-shadow: 0 0 0 3px rgba(95, 208, 143, 0.25);
+    }
+  }
+}
+
+.tb-pager-summary {
+  white-space: nowrap;
+  color: var(--bx-text-muted, rgba(15, 36, 23, 0.58));
+  b {
+    font-weight: 600;
+    color: var(--bx-text, #0f2417);
+  }
+}
+
+// Narrow screens: icon-only Previous/Next, drop the secondary info.
+@media (max-width: 959px) {
+  .tb-pager-size {
+    display: none;
+  }
+}
+@media (max-width: 599px) {
+  .tb-pager {
+    padding: 8px;
+    gap: 2px;
+  }
+  .tb-pager-step-label,
+  .tb-pager-summary,
+  .tb-pager-divider {
+    display: none;
+  }
+}
