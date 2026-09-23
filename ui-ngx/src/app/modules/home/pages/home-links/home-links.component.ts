@@ -25,7 +25,7 @@ import { HomeDashboard } from '@shared/models/dashboard.models';
 @Component({
   selector: 'tb-home-links',
   templateUrl: './home-links.component.html',
-  styleUrls: ['./home-links.component.scss'],
+  styleUrls: ['./home-links.component.scss', './home-links-glass.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeLinksComponent implements OnInit {

@@ -1,0 +1,302 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ============================================================
+// BoxTech glass redesign — home dashboard
+// Only the /home page (tb-home-links) in the BoxTech theme; regular client
+// dashboards and the TME theme keep their own look.
+// Widgets are glass cards over the shell's static mint gradient. Blur is
+// kept to the top-level cards only (nested widgets are reset) so the page
+// composites cheaply.
+// ============================================================
+
+:host-context(.tb-theme-boxtech) ::ng-deep {
+  --mdc-filled-button-container-shape: 10px;
+  --mdc-outlined-button-container-shape: 10px;
+  --mdc-protected-button-container-shape: 10px;
+
+  // Let the shell gradient show through every dashboard layer (incl. nested states).
+  .tb-dashboard-page,
+  .tb-dashboard-container,
+  .mat-drawer-container.tb-dashboard-layouts,
+  tb-dashboard-layout > .mat-content,
+  tb-dashboard-layout > .tb-progress-cover,
+  tb-dashboard > .tb-progress-cover,
+  .tb-dashboard-drawer-container,
+  .tb-time-series-chart-panel,
+  .tb-mobile-app-qrcode-panel,
+  gridster {
+    background-color: transparent !important;
+  }
+
+  // Recent dashboards table sits directly on the glass card.
+  .mat-mdc-table,
+  .mat-mdc-table .mat-mdc-header-row,
+  .mat-mdc-table .mat-mdc-row {
+    background: transparent !important;
+  }
+  .mat-mdc-table .mat-mdc-row {
+    transition: background-color 160ms ease;
+    &:hover {
+      background: rgba(0, 46, 1, 0.04) !important;
+    }
+  }
+
+  // ---------- Glass cards ----------
+  .tb-widget-container > .tb-widget {
+    background: var(--bx-glass-bg) !important;
+    -webkit-backdrop-filter: var(--bx-glass-blur);
+    backdrop-filter: var(--bx-glass-blur);
+    border: 1px solid var(--bx-glass-border) !important;
+    border-radius: 20px !important;
+    box-shadow: var(--bx-glass-shadow), var(--bx-glass-highlight) !important;
+    transition: background-color 240ms ease, box-shadow 240ms var(--bx-ease-out);
+    animation: bx-card-rise 560ms var(--bx-ease-out) backwards;
+    &:hover {
+      background: var(--bx-glass-bg-hover) !important;
+      box-shadow: var(--bx-glass-shadow-hover), var(--bx-glass-highlight) !important;
+    }
+  }
+  // Staggered entrance (animation-fill-mode: backwards leaves no transform behind).
+  @for $i from 1 through 10 {
+    gridster > gridster-item:nth-child(#{$i}) .tb-widget-container > .tb-widget {
+      animation-delay: #{($i - 1) * 45}ms;
+    }
+  }
+
+  // Widgets rendered inside another widget (Activity charts, mobile QR state)
+  // sit on the parent card: no second glass layer, no second blur.
+  .tb-widget .tb-widget-container > .tb-widget {
+    background: transparent !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    animation: none;
+    &:hover {
+      background: transparent !important;
+      box-shadow: none !important;
+    }
+  }
+
+  // ---------- Typography ----------
+  .tb-home-widget-title,
+  .tb-widget-title .mat-subtitle-1,
+  .tb-title-link,
+  .tb-title {
+    color: var(--bx-text) !important;
+    font-weight: 700 !important;
+    font-size: 14px !important;
+    line-height: 20px !important;
+    letter-spacing: 0.1px;
+  }
+  .tb-home-widget-link::after,
+  .tb-home-widget-info-icon {
+    color: rgba(23, 115, 58, 0.45) !important;
+  }
+  .tb-home-widget-link:hover::after {
+    color: var(--bx-green-600) !important;
+  }
+
+  // ---------- Buttons ----------
+  // Same gradient family as the header / sidebar, plus a light sheen that
+  // sweeps across on hover (background-position only, no layout).
+  .mat-mdc-unelevated-button.mat-primary {
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%) 130% 0 / 250% 100% no-repeat,
+      radial-gradient(120% 140% at 15% -30%, rgba(143, 230, 179, 0.45), transparent 60%),
+      linear-gradient(115deg, var(--bx-green-600) 0%, #0e5626 42%, var(--bx-green-950) 100%) !important;
+    box-shadow: 0 8px 18px -8px rgba(0, 46, 1, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    transition: background-position 650ms var(--bx-ease-out), box-shadow 220ms ease, transform 220ms var(--bx-ease-out);
+    &:hover {
+      background-position: -30% 0, 0 0, 0 0 !important;
+      box-shadow: 0 12px 24px -10px rgba(0, 46, 1, 0.65), 0 0 0 3px rgba(143, 230, 179, 0.22),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
+    }
+    &:active {
+      transform: translateY(0);
+    }
+  }
+  .mat-mdc-outlined-button.mat-primary {
+    color: var(--bx-green-900) !important;
+    border-color: rgba(31, 143, 77, 0.22) !important;
+    background:
+      radial-gradient(120% 140% at 15% -30%, rgba(143, 230, 179, 0.35), transparent 60%),
+      linear-gradient(180deg, #ffffff 0%, var(--bx-mint-50) 100%) !important;
+    box-shadow: 0 6px 14px -10px rgba(0, 46, 1, 0.35), inset 0 1px 0 #ffffff;
+    transition: box-shadow 220ms ease, transform 220ms var(--bx-ease-out), border-color 220ms ease;
+    &:hover {
+      border-color: rgba(31, 143, 77, 0.4) !important;
+      box-shadow: 0 10px 20px -10px rgba(0, 46, 1, 0.4), inset 0 1px 0 #ffffff;
+      transform: translateY(-1px);
+    }
+  }
+
+  // ---------- Devices / Alarms stat tiles ----------
+  a.tb-item-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.55) !important;
+    border: 1px solid rgba(0, 46, 1, 0.07) !important;
+    border-radius: 14px !important;
+    transition: transform 220ms var(--bx-ease-out), box-shadow 220ms ease, background-color 220ms ease;
+    &:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.9) !important;
+      box-shadow: 0 12px 24px -14px rgba(0, 46, 1, 0.4) !important;
+    }
+    .tb-item-title {
+      color: var(--bx-text-muted) !important;
+      font-weight: 500 !important;
+      &::before {
+        content: '';
+        display: inline-block;
+        width: 7px;
+        height: 7px;
+        margin-right: 6px;
+        border-radius: 50%;
+        vertical-align: middle;
+        background: rgba(15, 36, 23, 0.3);
+      }
+    }
+    .tb-count {
+      color: var(--bx-text) !important;
+      font-weight: 700 !important;
+      font-variant-numeric: tabular-nums;
+    }
+  }
+  a.tb-item-card.tb-active {
+    background: linear-gradient(160deg, rgba(220, 245, 230, 0.95), rgba(255, 255, 255, 0.6)) !important;
+    border-color: rgba(31, 143, 77, 0.18) !important;
+    .tb-item-title::before {
+      background: var(--bx-green-500);
+      box-shadow: 0 0 0 3px rgba(31, 143, 77, 0.15);
+    }
+    .tb-count {
+      color: var(--bx-green-700) !important;
+    }
+  }
+  a.tb-item-card.tb-inactive,
+  a.tb-item-card.tb-critical {
+    background: linear-gradient(160deg, rgba(254, 228, 228, 0.85), rgba(255, 255, 255, 0.6)) !important;
+    border-color: rgba(209, 39, 48, 0.14) !important;
+    .tb-item-title::before {
+      background: #d12730;
+      box-shadow: 0 0 0 3px rgba(209, 39, 48, 0.12);
+    }
+  }
+  a.tb-item-card.tb-assigned .tb-item-title::before {
+    background: var(--bx-green-600);
+  }
+
+  // ---------- Quick links / documentation ----------
+  .tb-link-button,
+  .tb-link,
+  .tb-add-link-button {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(0, 46, 1, 0.08) !important;
+    box-shadow: none !important;
+    border-radius: 12px !important;
+    transition: transform 200ms var(--bx-ease-out), background-color 200ms ease, box-shadow 200ms ease;
+  }
+  .tb-link-button:hover,
+  .tb-add-link-button:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(31, 143, 77, 0.22) !important;
+    box-shadow: 0 10px 20px -12px rgba(0, 46, 1, 0.35) !important;
+  }
+  .tb-link-icon-container {
+    background: var(--bx-mint-100) !important;
+    border-radius: 8px !important;
+    .mat-icon,
+    tb-icon {
+      color: var(--bx-green-700);
+    }
+  }
+  .tb-link-text {
+    color: var(--bx-text) !important;
+    font-weight: 500 !important;
+  }
+
+  // ---------- Recent dashboards / getting started accents ----------
+  .tb-no-dashboards:before,
+  .tb-no-last-visited-dashboards:before {
+    background: var(--bx-green-600) !important;
+  }
+  .tb-get-started {
+    background: transparent !important;
+  }
+  .tb-get-started .mat-step-header {
+    border-radius: 12px;
+    transition: background-color 180ms ease;
+    &:hover {
+      background: rgba(0, 46, 1, 0.04);
+    }
+  }
+  // Active step reads as one white panel (header + body).
+  .tb-get-started .mat-vertical-stepper-header[aria-selected="true"],
+  .tb-get-started .mat-vertical-content-container {
+    background: #ffffff !important;
+  }
+  .tb-bordered-content {
+    background: rgba(255, 255, 255, 0.55) !important;
+    border-color: rgba(0, 46, 1, 0.08) !important;
+    border-radius: 14px !important;
+  }
+  .tb-get-started button.clipboard-btn p {
+    color: var(--bx-green-700) !important;
+  }
+  .tb-get-started button.clipboard-btn div:after {
+    background: var(--bx-green-700) !important;
+  }
+
+  // ---------- Usage bars ----------
+  .tb-usage-items-progress .mat-mdc-progress-bar:not(.critical) {
+    --mdc-linear-progress-active-indicator-color: var(--bx-green-600);
+    --mdc-linear-progress-track-color: rgba(31, 143, 77, 0.12);
+  }
+  .tb-usage-items-progress .mdc-linear-progress {
+    border-radius: 999px;
+  }
+}
+
+@keyframes bx-card-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :host-context(.tb-theme-boxtech) ::ng-deep .tb-widget-container > .tb-widget {
+    background: var(--bx-glass-bg-strong) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host-context(.tb-theme-boxtech) ::ng-deep * {
+    animation: none !important;
+    transition-duration: 1ms !important;
+  }
+}

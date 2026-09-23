@@ -47,16 +47,27 @@ export class MenuToggleComponent implements OnInit {
       return '0px';
     }
   }
+  // Cached: sectionHeight() runs on every change detection pass and
+  // getComputedStyle() forces a synchronous style recalculation.
+  private rowHeight: number = null;
   private getRowHeight(): number {
-    const raw = getComputedStyle(this.elementRef.nativeElement).getPropertyValue('--tb-row-height').trim();
-    const parsed = parseInt(raw, 10);
-    return isNaN(parsed) ? 30 : parsed;
+    if (this.rowHeight === null) {
+      const raw = getComputedStyle(this.elementRef.nativeElement).getPropertyValue('--tb-row-height').trim();
+      const parsed = parseInt(raw, 10);
+      if (isNaN(parsed)) {
+        // Not attached / styled yet — don't cache the fallback.
+        return 30;
+      }
+      this.rowHeight = parsed;
+    }
+    return this.rowHeight;
   }
   toggleSection(event: MouseEvent) {
     event.stopPropagation();
     if (this.collapsed) {
       this.flyoutOpen = !this.flyoutOpen;
     } else {
+      this.rowHeight = null;
       this.section.opened = !this.section.opened;
       this.store.dispatch(new ActionPreferencesUpdateOpenedMenuSection({path: this.section.path, opened: this.section.opened}));
       this.toggled.emit();

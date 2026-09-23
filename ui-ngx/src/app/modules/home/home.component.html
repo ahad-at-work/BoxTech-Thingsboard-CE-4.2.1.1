@@ -15,26 +15,38 @@
     limitations under the License.
 
 -->
-<mat-sidenav-container autosize [class.tb-theme-tme]="isTmeCustomer">
+<div #sidenavHotzone class="tb-sidenav-hotzone" [class.tb-active]="sidebarAutoHide && !forceFullscreen" aria-hidden="true">
+  <span class="tb-sidenav-hotzone-handle"></span>
+</div>
+<mat-sidenav-container [autosize]="isTmeCustomer" [hasBackdrop]="sidebarAutoHide ? false : null" [class.tb-theme-tme]="isTmeCustomer" [class.tb-theme-boxtech]="!isTmeCustomer">
   <mat-sidenav #sidenav class="tb-site-sidenav mat-elevation-z2"
                [class.tb-sidebar-collapsed]="sidebarCollapsed"
+               [class.tb-sidenav-autohide]="sidebarAutoHide"
                [disableClose]="sidenavOpened"
                (click)="sidenavClicked()"
-               [mode]="sidenavMode"
+               [mode]="sidebarAutoHide ? 'over' : sidenavMode"
                [opened]="sidenavOpened && !forceFullscreen">
     <mat-toolbar color="primary" class="tb-side-menu-toolbar flex flex-1 flex-col" role="navigation">
       <div class="tb-sidebar-scroll-area flex flex-col">
         <div class="tb-sidebar-top-bar" [class.tb-collapsed]="sidebarCollapsed">
-          <div class="tb-sidebar-brand" *ngIf="!sidebarCollapsed" [class.tb-sidebar-brand-tme]="isTmeCustomer">
-            <img [src]="isTmeCustomer ? 'assets/tme-logo-sidebar.png' : 'assets/boxtech-logo-green-sidebar.png'"
-                 [alt]="isTmeCustomer ? 'TME' : 'BoxTech'"
-                 [class.tb-sidebar-logo-tme]="isTmeCustomer"
-                 class="tb-sidebar-logo"/>
+          <div class="tb-sidebar-brand tb-sidebar-brand-tme" *ngIf="!sidebarCollapsed && isTmeCustomer">
+            <img src="assets/tme-logo-sidebar.png" alt="TME" class="tb-sidebar-logo tb-sidebar-logo-tme"/>
           </div>
+          <a class="tb-sidebar-brand-glass" *ngIf="!isTmeCustomer" routerLink="/home">
+            <span class="tb-brand-mark"><img src="assets/boxtech-icon-only.png" alt=""/></span>
+            <span class="tb-brand-text">
+              <span class="tb-brand-name">BoxTech</span>
+              <span class="tb-brand-tagline">IoT platform</span>
+            </span>
+          </a>
           <div class="tb-sidebar-brand-collapsed-tme" *ngIf="sidebarCollapsed && isTmeCustomer">
             <img src="assets/tme-logo-mark.png" alt="TME" class="tb-sidebar-logo-mark-tme"/>
           </div>
-          <button mat-icon-button class="tb-sidebar-collapse-toggle" *ngIf="!isMobileSidebar && !isTmeCustomer" (click)="toggleSidebarCollapsed()">
+          <button mat-icon-button class="tb-sidebar-collapse-toggle" *ngIf="!isMobileSidebar && !isTmeCustomer"
+                  [class.tb-pinned]="sidebarDocked"
+                  [matTooltip]="sidebarDocked ? 'Auto-hide sidebar' : 'Keep sidebar open'"
+                  matTooltipPosition="right"
+                  (click)="$event.stopPropagation(); toggleSidebarDocked()">
             <svg class="tb-panel-left-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <rect width="18" height="18" x="3" y="3" rx="2"/>
               <path d="M9 3v18"/>
@@ -65,6 +77,22 @@
                 class="gt-sm:!hidden" (click)="sidenav.toggle()">
           <mat-icon class="material-icons">menu</mat-icon>
         </button>
+        <div class="tb-topbar-title lt-md:!hidden" *ngIf="!isTmeCustomer && !forceFullscreen"
+             [class.!hidden]="displaySearchMode()">
+          <button mat-icon-button class="tb-topbar-dock-toggle"
+                  [class.tb-pinned]="sidebarDocked"
+                  [matTooltip]="sidebarDocked ? 'Auto-hide sidebar' : 'Keep sidebar open'"
+                  (click)="toggleSidebarDocked()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="18" height="18" x="3" y="3" rx="2"/>
+              <path d="M9 3v18"/>
+            </svg>
+          </button>
+          <div class="tb-topbar-title-text">
+            <span class="tb-topbar-eyebrow">Workspace</span>
+            <span class="tb-topbar-page-title">{{ pageTitle | translate }}</span>
+          </div>
+        </div>
         <button mat-icon-button
                 [class.!hidden]="!forceFullscreen || displaySearchMode"
                 (click)="goBack()">
@@ -77,45 +105,59 @@
         </button>
         <nav class="tb-topbar-nav flex flex-row" [class.!hidden]="displaySearchMode() || isTmeCustomer">
           <a class="tb-topbar-link" routerLink="/dashboards" routerLinkActive="tb-topbar-link-active">
+            <mat-icon class="tb-topbar-link-icon">dashboard</mat-icon>
             <span translate>dashboard.dashboards</span>
           </a>
           <div class="tb-topbar-dropdown">
-            <span class="tb-topbar-link">
+            <span class="tb-topbar-link" [class.tb-topbar-link-active]="isUrlActive('/entities')">
+              <mat-icon class="tb-topbar-link-icon">view_in_ar</mat-icon>
               <span translate>entity.entities</span>
               <mat-icon class="tb-topbar-caret">expand_more</mat-icon>
             </span>
             <div class="tb-topbar-dropdown-panel tb-entities-dropdown-panel">
-              <a *ngFor="let item of entitiesLinks$ | async" class="tb-topbar-dropdown-item" [routerLink]="item.path">
-                <span [translate]="item.name"></span>
-              </a>
+              <ng-container *ngFor="let item of entitiesLinks$ | async">
+                <ng-container *ngTemplateOutlet="topbarDropdownItem; context: {$implicit: item}"></ng-container>
+              </ng-container>
             </div>
           </div>
           <div class="tb-topbar-dropdown">
-            <span class="tb-topbar-link">
+            <span class="tb-topbar-link" [class.tb-topbar-link-active]="isUrlActive('/profiles')">
+              <mat-icon class="tb-topbar-link-icon">badge</mat-icon>
               <span translate>profiles.profiles</span>
               <mat-icon class="tb-topbar-caret">expand_more</mat-icon>
             </span>
             <div class="tb-topbar-dropdown-panel tb-profiles-dropdown-panel">
-              <a *ngFor="let item of profilesLinks$ | async" class="tb-topbar-dropdown-item" [routerLink]="item.path">
-                <span [translate]="item.name"></span>
-              </a>
+              <ng-container *ngFor="let item of profilesLinks$ | async">
+                <ng-container *ngTemplateOutlet="topbarDropdownItem; context: {$implicit: item}"></ng-container>
+              </ng-container>
             </div>
           </div>
           <a class="tb-topbar-link" routerLink="/customers" routerLinkActive="tb-topbar-link-active">
+            <mat-icon class="tb-topbar-link-icon">group</mat-icon>
             <span translate>customer.customers</span>
           </a>
           <div class="tb-topbar-dropdown">
-            <span class="tb-topbar-link">
+            <span class="tb-topbar-link" [class.tb-topbar-link-active]="isUrlActive('/resources')">
+              <mat-icon class="tb-topbar-link-icon">folder_open</mat-icon>
               <span translate>admin.resources</span>
               <mat-icon class="tb-topbar-caret">expand_more</mat-icon>
             </span>
             <div class="tb-topbar-dropdown-panel tb-resources-dropdown-panel">
-              <a *ngFor="let item of resourcesLinks$ | async" class="tb-topbar-dropdown-item" [routerLink]="item.path">
-                <span [translate]="item.name"></span>
-              </a>
+              <ng-container *ngFor="let item of resourcesLinks$ | async">
+                <ng-container *ngTemplateOutlet="topbarDropdownItem; context: {$implicit: item}"></ng-container>
+              </ng-container>
             </div>
           </div>
         </nav>
+        <ng-template #topbarDropdownItem let-item>
+          <a class="tb-topbar-dropdown-item" [routerLink]="item.path" routerLinkActive="tb-active">
+            <span class="tb-dropdown-item-icon"><tb-icon>{{ topbarIcons[item.path] || item.icon }}</tb-icon></span>
+            <span class="tb-dropdown-item-text">
+              <span class="tb-dropdown-item-title" [translate]="item.name"></span>
+              <span class="tb-dropdown-item-desc" *ngIf="topbarDescriptions[item.path]">{{ topbarDescriptions[item.path] }}</span>
+            </span>
+          </a>
+        </ng-template>
         <div [class.!hidden]="!displaySearchMode()" class="tb-dark flex flex-1 flex-row">
           <mat-form-field class="tb-appearance-transparent flex-1">
             <input #searchInput matInput
@@ -142,7 +184,7 @@
               <div class="tb-search-result-item"
                    *ngFor="let result of searchResults"
                    (mousedown)="navigateToResult(result.path)">
-                <mat-icon class="material-icons tb-search-result-icon">{{result.icon}}</mat-icon>
+                <tb-icon class="tb-search-result-icon">{{result.icon}}</tb-icon>
                 <span translate>{{result.name}}</span>
               </div>
             </div>

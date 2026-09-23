@@ -14,10 +14,10 @@
 /// limitations under the License.
 ///
 
-import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Inject, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { skip, startWith, Subject, take } from 'rxjs';
 import { Store } from '@ngrx/store';
-import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
+import { debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
 
 import { BreakpointObserver, BreakpointState } from '@angular/cdk/layout';
 import { PageComponent } from '@shared/components/page.component';
@@ -32,7 +32,7 @@ import { instanceOfSearchableComponent, ISearchableComponent } from '@home/model
 import { ActiveComponentService } from '@core/services/active-component.service';
 import { RouterTabsComponent } from '@home/components/router-tabs.component';
 import { FormBuilder } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { isDefined, isDefinedAndNotNull } from '@core/utils';
 import { MenuService } from '@core/services/menu.service';
 import { Authority } from '@shared/models/authority.enum';
@@ -40,7 +40,7 @@ import { MenuId, MenuSection } from '@core/services/menu.models';
 @Component({
   selector: 'tb-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss']
+  styleUrls: ['./home.component.scss', './home-glass.component.scss']
 })
 export class HomeComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
@@ -67,6 +67,24 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
 
   @ViewChild('sidenav')
   sidenav: MatSidenav;
+
+  @ViewChild('sidenav', {read: ElementRef})
+  sidenavElement: ElementRef<HTMLElement>;
+
+  @ViewChild('sidenavHotzone')
+  sidenavHotzone: ElementRef<HTMLElement>;
+
+  // BoxTech auto-hide sidebar: open on Home; on every other tab (unless
+  // pinned) it slides away and re-appears while the pointer rests on the
+  // left screen edge.
+  // Reveal/hide runs outside the Angular zone and only flips a CSS class, so
+  // hovering never triggers change detection.
+  sidebarPinned = HomeComponent.loadSidebarPinned();
+  sidebarDocked = this.sidebarPinned;
+  isDesktop = true;
+  private revealTimer: ReturnType<typeof setTimeout>;
+  private hideTimer: ReturnType<typeof setTimeout>;
+  private removeSidenavListeners: Array<() => void> = [];
 
   @ViewChild('searchInput') searchInputField: ElementRef;
 
@@ -122,6 +140,32 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
     MenuId.widget_library, MenuId.images, MenuId.scada_symbols,
     MenuId.javascript_library, MenuId.resources_library
   ]);
+
+  // One-line hints under each header dropdown item (keyed by menu path).
+  readonly topbarDescriptions: {[path: string]: string} = {
+    '/entities/devices': 'Connected hardware and telemetry',
+    '/entities/assets': 'Sites, machines and things you track',
+    '/entities/entityViews': 'Scoped views of devices and assets',
+    '/entities/gateways': 'Gateways and their connectors',
+    '/profiles/deviceProfiles': 'Transport, alarm rules and provisioning',
+    '/profiles/assetProfiles': 'Defaults for each asset type',
+    '/resources/widgets-library': 'Widget bundles and widget types',
+    '/resources/images': 'Uploaded images and icons',
+    '/resources/scada-symbols': 'Symbols for SCADA dashboards',
+    '/resources/javascript-library': 'Reusable JavaScript modules',
+    '/resources/resources-library': 'Files, certificates and models'
+  };
+
+  // Icons for header dropdown items whose stock menu icon is a letter tile.
+  readonly topbarIcons: {[path: string]: string} = {
+    '/profiles/deviceProfiles': 'phonelink_setup',
+    '/profiles/assetProfiles': 'home_work'
+  };
+
+  isUrlActive(prefix: string): boolean {
+    const path = this.router.url.split(/[?#;]/)[0];
+    return path === prefix || path.startsWith(prefix + '/');
+  }
   
 
   toggleSidebarCollapsed(): void {
@@ -131,12 +175,141 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
     this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
+  get sidebarAutoHide(): boolean {
+    return this.isDesktop && !this.isTmeCustomer && !this.sidebarDocked;
+  }
+
+  // Pin lasts for the current session only, so a reload always brings back auto-hide.
+  toggleSidebarDocked(): void {
+    this.sidebarDocked = !this.sidebarDocked;
+    this.sidebarPinned = this.sidebarDocked && !this.isHomeUrl(this.router.url);
+    this.hideSidenav();
+  }
+
+  private static loadSidebarPinned(): boolean {
+    try {
+      // Drop the pin that earlier builds persisted across reloads.
+      localStorage.removeItem('tb_boxtech_sidebar_pinned');
+    } catch (e) {}
+    return false;
+  }
+
+  private onNavigationEnd() {
+    // Open on Home; slides away on every other tab (unless pinned).
+    this.sidebarDocked = this.sidebarPinned || this.isHomeUrl(this.router.url);
+    if (this.sidebarAutoHide && this.isPointerOverSidenav()) {
+      // Clicked a tab inside the sidebar: stay open while the pointer is on it;
+      // the mouseleave listener starts hiding as soon as it moves away.
+      this.revealSidenav();
+    } else {
+      this.hideSidenav();
+    }
+    this.updatePageTitle();
+  }
+
+  private isPointerOverSidenav(): boolean {
+    return !!(this.sidenavElement?.nativeElement.matches(':hover') ||
+      this.sidenavHotzone?.nativeElement.matches(':hover'));
+  }
+
+  private isHomeUrl(url: string): boolean {
+    return url.split(/[?#;]/)[0].replace(/\/+$/, '') === '/home';
+  }
+
+  // Header title: the deepest route's `title` data (same key the browser tab title uses).
+  pageTitle = '';
+  private updatePageTitle() {
+    let route = this.router.routerState.snapshot.root;
+    let title = '';
+    while (route) {
+      if (route.data?.title) {
+        title = route.data.title;
+      }
+      route = route.firstChild;
+    }
+    this.pageTitle = title;
+  }
+
+  // First load: slide the sidebar in so users see where it lives, then let it
+  // tuck away (unless the pointer is resting on it).
+  private introduceSidenav() {
+    if (!this.sidebarAutoHide) {
+      return;
+    }
+    this.ngZone.runOutsideAngular(() => {
+      setTimeout(() => {
+        this.revealSidenav();
+        this.scheduleHideSidenav(1600);
+      }, 350);
+    });
+  }
+
+  private revealSidenav() {
+    clearTimeout(this.hideTimer);
+    if (this.sidebarAutoHide) {
+      this.sidenavElement?.nativeElement.classList.add('tb-sidenav-revealed');
+    }
+  }
+
+  private hideSidenav() {
+    clearTimeout(this.revealTimer);
+    clearTimeout(this.hideTimer);
+    this.sidenavElement?.nativeElement.classList.remove('tb-sidenav-revealed');
+  }
+
+  private scheduleHideSidenav(delay = 180) {
+    clearTimeout(this.revealTimer);
+    clearTimeout(this.hideTimer);
+    this.hideTimer = setTimeout(() => {
+      const sidenavEl = this.sidenavElement?.nativeElement;
+      const hovered = this.isPointerOverSidenav();
+      // Keep the sidebar open while a menu opened from it (e.g. account menu) is showing.
+      const overlayMenuOpen = !!this.window.document.querySelector('.cdk-overlay-container .mat-mdc-menu-panel');
+      if (hovered || overlayMenuOpen) {
+        this.scheduleHideSidenav(400);
+      } else {
+        sidenavEl?.classList.remove('tb-sidenav-revealed');
+      }
+    }, delay);
+  }
+
+  private bindSidenavHoverListeners() {
+    const sidenavEl = this.sidenavElement?.nativeElement;
+    const hotzoneEl = this.sidenavHotzone?.nativeElement;
+    if (!sidenavEl || !hotzoneEl) {
+      return;
+    }
+    this.ngZone.runOutsideAngular(() => {
+      const listen = (el: HTMLElement, event: string, handler: () => void) => {
+        el.addEventListener(event, handler, {passive: true});
+        this.removeSidenavListeners.push(() => el.removeEventListener(event, handler));
+      };
+      listen(hotzoneEl, 'mouseenter', () => {
+        clearTimeout(this.hideTimer);
+        clearTimeout(this.revealTimer);
+        this.revealTimer = setTimeout(() => this.revealSidenav(), 60);
+      });
+      listen(hotzoneEl, 'mouseleave', () => {
+        if (!sidenavEl.classList.contains('tb-sidenav-revealed')) {
+          clearTimeout(this.revealTimer);
+        }
+      });
+      listen(sidenavEl, 'mouseenter', () => clearTimeout(this.hideTimer));
+      listen(sidenavEl, 'mouseleave', () => {
+        if (this.sidebarAutoHide) {
+          this.scheduleHideSidenav();
+        }
+      });
+    });
+  }
+
   constructor(protected store: Store<AppState>,
               @Inject(WINDOW) private window: Window,
               private activeComponentService: ActiveComponentService,
               private fb: FormBuilder,
               private menuService: MenuService,
               private router: Router,
+              private ngZone: NgZone,
               public breakpointObserver: BreakpointObserver) {
     super(store);
   }
@@ -148,16 +321,30 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
         this.authState = authState;
         this.isTmeCustomer = authState.userDetails?.customerId?.id === '57a0fa00-8d00-11f1-9902-cdf828be2d57';
         this.isCustomerUser = authState.authUser?.authority === Authority.CUSTOMER_USER;
+        if (!this.isTmeCustomer) {
+          // The icon-rail collapse is a TME-only feature; BoxTech uses dock / auto-hide.
+          this.sidebarCollapsed = false;
+        }
         document.body.classList.toggle('tb-theme-tme-active', this.isTmeCustomer);
       });
+
+    this.sidebarDocked = this.sidebarPinned || this.isHomeUrl(this.router.url);
+    this.updatePageTitle();
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe(() => this.onNavigationEnd());
+
     const isGtSm = this.breakpointObserver.isMatched(MediaBreakpoints['gt-sm']);
     this.sidenavMode = isGtSm ? 'side' : 'over';
     this.sidenavOpened = isGtSm;
+    this.isDesktop = isGtSm;
 
     this.breakpointObserver
       .observe(MediaBreakpoints['gt-sm'])
       .pipe(takeUntil(this.destroy$))
       .subscribe((state: BreakpointState) => {
+          this.isDesktop = state.matches;
           if (state.matches) {
             this.sidenavMode = 'side';
             this.sidenavOpened = true;
@@ -181,13 +368,18 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
       );
   }
 
-ngOnDestroy() {
+  ngOnDestroy() {
     document.body.classList.remove('tb-theme-tme-active');
+    clearTimeout(this.revealTimer);
+    clearTimeout(this.hideTimer);
+    this.removeSidenavListeners.forEach(remove => remove());
     this.destroy$.next();
     this.destroy$.complete();
   }
 
   ngAfterViewInit() {
+    this.bindSidenavHoverListeners();
+    this.introduceSidenav();
     this.textSearch.valueChanges.pipe(
       debounceTime(150),
       startWith(''),
@@ -198,7 +390,7 @@ ngOnDestroy() {
   }
 
   sidenavClicked() {
-    if (this.sidenavMode === 'over') {
+    if (this.sidenavMode === 'over' && !this.sidebarAutoHide) {
       this.sidenav.toggle();
     }
   }

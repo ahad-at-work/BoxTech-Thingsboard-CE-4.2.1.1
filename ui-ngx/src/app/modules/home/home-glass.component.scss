@@ -1,0 +1,717 @@
+/**
+ * Copyright © 2016-2025 The Thingsboard Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// ============================================================
+// BoxTech glass redesign — shell (sidebar, header, auto-hide)
+// Loaded after home.component.scss and scoped to .tb-theme-boxtech, so the
+// TME customer theme is untouched.
+// Performance: every animation here is transform/opacity only (composited,
+// no layout per frame), and the header blur lives on a ::before layer so the
+// dropdowns nested in the header can blur the page behind them too.
+// ============================================================
+
+// Left-edge hover strip that reveals the auto-hidden sidebar.
+.tb-sidenav-hotzone {
+  display: none;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 12px;
+  z-index: 5;
+  &.tb-active {
+    display: block;
+  }
+  .tb-sidenav-hotzone-handle {
+    position: absolute;
+    top: 50%;
+    left: 3px;
+    width: 4px;
+    height: 56px;
+    margin-top: -28px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, var(--bx-mint-300), var(--bx-green-600));
+    box-shadow: 0 0 12px rgba(95, 208, 143, 0.55);
+    opacity: 0.45;
+    transition: opacity 200ms ease, transform 240ms var(--bx-ease-out);
+  }
+  &:hover .tb-sidenav-hotzone-handle {
+    opacity: 1;
+    transform: scaleY(1.3);
+  }
+}
+
+$bx-container: 'mat-sidenav-container.tb-theme-boxtech.mat-drawer-container';
+$bx-sidenav: 'mat-sidenav.tb-site-sidenav.mat-drawer';
+
+:host ::ng-deep #{$bx-container} {
+  background: var(--bx-app-bg);
+  color: var(--bx-text);
+
+  // Instant content resize when docking/undocking: animating the margin would
+  // re-layout (and re-grid dashboards) on every frame.
+  > .mat-drawer-content {
+    transition: none !important;
+    background: transparent;
+  }
+
+  // ---------------- Sidebar ----------------
+  #{$bx-sidenav} {
+    --tb-row-height: 40px;
+    --mat-text-button-state-layer-color: #ffffff;
+    --mat-text-button-ripple-color: rgba(255, 255, 255, 0.12);
+    --mat-icon-button-state-layer-color: #ffffff;
+    width: 272px;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+
+    .mat-drawer-inner-container {
+      padding: 12px 0 12px 12px;
+      box-sizing: border-box;
+      overflow: visible !important;
+    }
+
+    .tb-side-menu-toolbar.mat-toolbar {
+      position: relative;
+      isolation: isolate;
+      height: 100%;
+      border-radius: 22px;
+      overflow: hidden;
+      color: #ffffff;
+      background: linear-gradient(165deg, #0e5626 0%, #053413 45%, var(--bx-green-950) 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 24px 48px -22px rgba(0, 33, 10, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+      &::before,
+      &::after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        border-radius: 50%;
+        pointer-events: none;
+      }
+      &::before {
+        top: -120px;
+        right: -110px;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(143, 230, 179, 0.3), transparent 65%);
+      }
+      &::after {
+        bottom: -140px;
+        left: -120px;
+        width: 320px;
+        height: 320px;
+        background: radial-gradient(circle, rgba(95, 208, 143, 0.16), transparent 65%);
+      }
+    }
+
+    .tb-sidebar-scroll-area {
+      overflow-y: auto !important;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    }
+
+    .tb-sidebar-top-bar {
+      padding: 16px 12px 14px 14px;
+      gap: 8px;
+      border-bottom: none;
+    }
+
+    .tb-sidebar-brand-glass {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #ffffff;
+      text-decoration: none;
+      border: none;
+      outline: none;
+
+      .tb-brand-mark {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 13px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(160deg, #ffffff 0%, var(--bx-mint-100) 100%);
+        box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.45), inset 0 1px 0 #ffffff;
+        transition: transform 260ms var(--bx-ease-out);
+        img {
+          width: 32px;
+          height: 32px;
+          object-fit: contain;
+        }
+      }
+      &:hover .tb-brand-mark {
+        transform: rotate(-6deg) scale(1.05);
+      }
+      .tb-brand-text {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        line-height: 1.15;
+      }
+      .tb-brand-name {
+        font-size: 17px;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        color: #ffffff;
+      }
+      .tb-brand-tagline {
+        font-size: 11.5px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.55);
+      }
+    }
+
+    .tb-sidebar-collapse-toggle {
+      width: 34px !important;
+      height: 34px !important;
+      min-width: 34px !important;
+      border-radius: 10px !important;
+      color: rgba(255, 255, 255, 0.7) !important;
+      background: rgba(255, 255, 255, 0.06) !important;
+      transition: background-color 180ms ease, color 180ms ease;
+      .mat-mdc-button-persistent-ripple,
+      .mat-mdc-button-ripple {
+        border-radius: 10px;
+      }
+      .tb-panel-left-icon {
+        width: 18px !important;
+        height: 18px !important;
+        color: inherit !important;
+      }
+      &:hover {
+        color: #ffffff !important;
+        background: rgba(255, 255, 255, 0.14) !important;
+      }
+      &.tb-pinned {
+        color: var(--bx-mint-300) !important;
+      }
+    }
+
+    // Menu
+    .tb-side-menu {
+      padding: 2px 10px 12px;
+      gap: 2px;
+      min-height: 0;
+    }
+    .tb-side-menu > li {
+      border: none !important;
+      height: 44px !important;
+      min-height: 44px !important;
+      &.tb-expanded {
+        height: auto !important;
+      }
+    }
+
+    .tb-side-menu a.mat-mdc-button.mat-mdc-button-base,
+    .tb-side-menu .tb-menu-toggle-wrapper > .tb-button-toggle.mat-mdc-button-base {
+      height: 44px !important;
+      min-height: 44px !important;
+      padding: 0 12px !important;
+      border-radius: 12px !important;
+      color: rgba(255, 255, 255, 0.78) !important;
+      background: transparent;
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.1px;
+      transition: background-color 180ms var(--bx-ease-out), color 180ms ease;
+
+      .mat-icon {
+        font-size: 20px !important;
+        width: 20px !important;
+        height: 20px !important;
+        min-width: 20px;
+        margin: 0 12px 0 0 !important;
+        color: rgba(255, 255, 255, 0.64) !important;
+        transition: color 180ms ease, transform 240ms var(--bx-ease-out);
+      }
+      .mat-mdc-button-persistent-ripple,
+      .mat-mdc-button-ripple {
+        border-radius: 12px;
+      }
+      &:hover {
+        color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        .mat-icon {
+          color: #ffffff !important;
+          transform: translateX(2px);
+        }
+      }
+      &.tb-active {
+        color: #ffffff !important;
+        background:
+          linear-gradient(var(--bx-mint-300), var(--bx-mint-300)) 0 50% / 3px 18px no-repeat,
+          linear-gradient(90deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.07)) !important;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 8px 18px -10px rgba(0, 0, 0, 0.6);
+        .mat-icon {
+          color: var(--bx-mint-300) !important;
+        }
+      }
+    }
+
+    .tb-button-toggle .tb-toggle-icon {
+      color: rgba(255, 255, 255, 0.45);
+      font-size: 11px;
+      transition: transform 260ms var(--bx-ease-out), color 180ms ease;
+    }
+    .tb-button-toggle:hover .tb-toggle-icon {
+      color: #ffffff;
+    }
+
+    // Sub-menu (e.g. Edge management) with a thin guide line
+    .tb-menu-toggle-list {
+      position: relative;
+      margin: 0 0 0 22px;
+      padding: 0 0 0 8px;
+      transition: height 260ms var(--bx-ease-out);
+      &::before {
+        content: '';
+        position: absolute;
+        top: 6px;
+        bottom: 6px;
+        left: 0;
+        width: 1px;
+        background: rgba(255, 255, 255, 0.14);
+      }
+      li {
+        border: none !important;
+      }
+      a.mat-mdc-button.mat-mdc-button-base {
+        height: var(--tb-row-height) !important;
+        min-height: var(--tb-row-height) !important;
+        padding: 0 10px !important;
+        border-radius: 10px !important;
+        font-size: 13px;
+        .mat-icon {
+          font-size: 18px !important;
+          width: 18px !important;
+          height: 18px !important;
+          min-width: 18px;
+          margin-right: 10px !important;
+        }
+      }
+    }
+
+    // Account card
+    .tb-sidebar-account {
+      margin: 6px 10px 10px;
+      padding: 8px 6px 8px 10px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.07) !important;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: background-color 180ms ease;
+      &:hover {
+        background: rgba(255, 255, 255, 0.11) !important;
+      }
+      .mat-icon,
+      button.mat-mdc-icon-button .mat-icon {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+      .mat-icon.tb-mini-avatar {
+        color: var(--bx-mint-300) !important;
+      }
+      .tb-user-display-name {
+        color: #ffffff !important;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      .tb-user-authority {
+        color: rgba(255, 255, 255, 0.55) !important;
+        font-size: 11.5px;
+      }
+    }
+  }
+
+  // ---------------- Auto-hide ----------------
+  #{$bx-sidenav}.tb-sidenav-autohide {
+    transform: translate3d(calc(-100% - 8px), 0, 0) !important;
+    visibility: hidden !important;
+    transition: transform 360ms var(--bx-ease-in-out), visibility 0s linear 360ms !important;
+    will-change: transform;
+
+    .tb-side-menu-toolbar.mat-toolbar {
+      background: linear-gradient(165deg, rgba(14, 86, 38, 0.9) 0%, rgba(5, 52, 19, 0.92) 45%, rgba(0, 33, 10, 0.94) 100%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
+      box-shadow: 0 30px 60px -20px rgba(0, 33, 10, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.06),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    &.tb-sidenav-revealed {
+      transform: translate3d(0, 0, 0) !important;
+      visibility: visible !important;
+      transition: transform 420ms var(--bx-ease-out), visibility 0s !important;
+    }
+  }
+
+  // ---------------- Header (dark green glass, same family as the sidebar) ----------------
+  .tb-primary-toolbar.mat-toolbar {
+    --mat-icon-button-state-layer-color: #ffffff;
+    width: auto;
+    height: 60px;
+    min-height: 60px;
+    margin: 12px 12px 0;
+    padding: 0 10px 0 10px;
+    gap: 6px;
+    border-radius: 18px;
+    color: #ffffff;
+    background: transparent !important;
+    box-shadow: none !important;
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      border-radius: inherit;
+      pointer-events: none;
+      background:
+        radial-gradient(520px 140px at 18% -30%, rgba(143, 230, 179, 0.26), transparent 70%),
+        linear-gradient(115deg, rgba(14, 86, 38, 0.97) 0%, rgba(5, 52, 19, 0.97) 48%, rgba(0, 33, 10, 0.98) 100%);
+      -webkit-backdrop-filter: blur(18px) saturate(140%);
+      backdrop-filter: blur(18px) saturate(140%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 44px -22px rgba(0, 33, 10, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .mat-icon,
+    button.mat-mdc-icon-button .mat-icon {
+      color: rgba(255, 255, 255, 0.82) !important;
+    }
+
+    .mat-mdc-icon-button {
+      width: 38px;
+      height: 38px;
+      padding: 7px;
+      border-radius: 11px;
+      background-color: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: background-color 160ms ease, border-color 160ms ease;
+      .mat-mdc-button-persistent-ripple,
+      .mat-mdc-button-ripple {
+        border-radius: 11px;
+      }
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.12);
+        border-color: rgba(255, 255, 255, 0.18);
+        .mat-icon {
+          color: #ffffff !important;
+        }
+      }
+    }
+
+    tb-notification-bell .mat-badge-content {
+      color: var(--bx-green-900);
+      background: var(--bx-mint-300);
+      box-shadow: 0 0 0 2px rgba(0, 33, 10, 0.9);
+    }
+  }
+
+  // Title block
+  .tb-topbar-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    max-width: 240px;
+    flex: 0 1 auto;
+    margin-right: 8px;
+  }
+  .tb-topbar-dock-toggle {
+    flex-shrink: 0;
+    color: #ffffff !important;
+    svg {
+      display: block;
+    }
+    &.tb-pinned {
+      color: var(--bx-green-900) !important;
+      background: var(--bx-mint-300) !important;
+      border-color: transparent !important;
+      box-shadow: 0 6px 16px -6px rgba(143, 230, 179, 0.6);
+    }
+  }
+  .tb-topbar-title-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    line-height: 1.15;
+  }
+  .tb-topbar-eyebrow {
+    font-size: 11px !important;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .tb-topbar-page-title {
+    font-size: 16px !important;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  // Nav: inset pill group
+  .tb-topbar-nav {
+    flex: 0 1 auto;
+    height: auto;
+    margin: 0 auto;
+    padding: 4px;
+    gap: 2px;
+    border-radius: 14px;
+    background: rgba(0, 0, 0, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  }
+  .tb-topbar-link {
+    gap: 7px;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 13.5px !important;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.8);
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 200ms ease;
+    .tb-topbar-link-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+      color: inherit !important;
+    }
+    .tb-topbar-caret {
+      margin-left: -2px;
+      color: inherit !important;
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+    &:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.08);
+    }
+  }
+  .tb-topbar-link-active,
+  .tb-topbar-link.tb-topbar-link-active:hover {
+    color: var(--bx-green-900) !important;
+    background-color: var(--bx-mint-300) !important;
+    box-shadow: 0 6px 16px -8px rgba(143, 230, 179, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+  .tb-topbar-caret {
+    transition: transform 220ms var(--bx-ease-out);
+  }
+
+  // Dropdowns: dark green glass panels with icon tile + title + hint
+  .tb-topbar-dropdown {
+    &::after {
+      // Hover bridge across the gap between the link and its panel.
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      height: 12px;
+    }
+    &:hover > .tb-topbar-link:not(.tb-topbar-link-active) {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.12);
+    }
+    &:hover .tb-topbar-caret {
+      transform: rotate(180deg);
+    }
+    &:hover .tb-topbar-dropdown-panel {
+      visibility: visible;
+      opacity: 1;
+      transform: none;
+      transition-delay: 0s;
+    }
+  }
+  .tb-topbar-dropdown-panel {
+    display: flex;
+    visibility: hidden;
+    opacity: 0;
+    top: calc(100% + 10px);
+    min-width: 270px !important;
+    padding: 6px;
+    gap: 2px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background:
+      radial-gradient(300px 120px at 0% 0%, rgba(143, 230, 179, 0.14), transparent 70%),
+      linear-gradient(165deg, rgba(14, 86, 38, 0.96) 0%, rgba(5, 52, 19, 0.97) 50%, rgba(0, 33, 10, 0.98) 100%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: 0 24px 48px -16px rgba(0, 33, 10, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    transform: translateY(6px) scale(0.98);
+    transform-origin: top left;
+    transition: opacity 160ms ease, transform 220ms var(--bx-ease-out), visibility 0s linear 220ms;
+  }
+  .tb-topbar-dropdown-item {
+    display: flex !important;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px !important;
+    border-radius: 11px;
+    border-bottom: none !important;
+    color: #ffffff !important;
+    transition: background-color 160ms ease;
+    &:hover {
+      color: #ffffff !important;
+      background-color: rgba(255, 255, 255, 0.08) !important;
+      .tb-dropdown-item-icon {
+        background: rgba(143, 230, 179, 0.16);
+        border-color: rgba(143, 230, 179, 0.3);
+      }
+    }
+    &.tb-active {
+      background-color: rgba(143, 230, 179, 0.14) !important;
+    }
+  }
+  .tb-dropdown-item-icon {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background-color 160ms ease, border-color 160ms ease;
+    .mat-icon,
+    tb-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+      color: var(--bx-mint-300) !important;
+    }
+  }
+  .tb-dropdown-item-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 2px;
+  }
+  .tb-dropdown-item-title {
+    font-size: 13.5px !important;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .tb-dropdown-item-desc {
+    max-width: 210px;
+    font-size: 12px !important;
+    line-height: 1.35;
+    white-space: normal;
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  // Search
+  .tb-header-search {
+    height: 38px;
+    width: 240px;
+    padding: 0 10px;
+    border-radius: 11px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    transition: background-color 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    @media (max-width: 1200px) {
+      width: 170px;
+    }
+    &:focus-within {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(143, 230, 179, 0.55);
+      box-shadow: 0 0 0 4px rgba(143, 230, 179, 0.16);
+    }
+    .tb-search-icon {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+    .tb-search-input {
+      color: #ffffff;
+      &::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+    .tb-search-results {
+      top: calc(100% + 10px);
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: linear-gradient(165deg, rgba(14, 86, 38, 0.97) 0%, rgba(0, 33, 10, 0.98) 100%);
+      -webkit-backdrop-filter: blur(20px) saturate(140%);
+      backdrop-filter: blur(20px) saturate(140%);
+      box-shadow: 0 24px 48px -16px rgba(0, 33, 10, 0.6);
+      animation: bx-pop-in 180ms var(--bx-ease-out);
+      .tb-search-result-item {
+        color: #ffffff;
+        border-radius: 9px;
+        border-bottom: none;
+        &:hover {
+          color: #ffffff;
+          background-color: rgba(255, 255, 255, 0.08);
+        }
+      }
+    }
+  }
+
+  mat-progress-bar.mat-warn {
+    --mdc-linear-progress-active-indicator-color: var(--bx-green-500);
+    --mdc-linear-progress-track-color: rgba(95, 208, 143, 0.25);
+    width: auto !important;
+    margin: 4px 24px -8px !important;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+}
+
+// Search result icons: the header's broad icon-color rule would otherwise win.
+:host ::ng-deep #{$bx-container} .tb-primary-toolbar .tb-header-search .tb-search-results .tb-search-result-item .tb-search-result-icon {
+  color: var(--bx-mint-300) !important;
+}
+:host ::ng-deep #{$bx-container} .tb-primary-toolbar .tb-header-search .tb-search-results .tb-search-result-item:hover .tb-search-result-icon {
+  color: #ffffff !important;
+}
+
+@keyframes bx-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :host ::ng-deep #{$bx-container} .tb-primary-toolbar.mat-toolbar::before {
+    background: linear-gradient(115deg, #0e5626 0%, #053413 48%, var(--bx-green-950) 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :host ::ng-deep #{$bx-container} *,
+  .tb-sidenav-hotzone * {
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+  }
+}
