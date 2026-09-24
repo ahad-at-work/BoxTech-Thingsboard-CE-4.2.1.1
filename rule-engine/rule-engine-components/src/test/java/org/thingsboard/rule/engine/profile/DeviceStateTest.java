@@ -179,6 +179,23 @@ public class DeviceStateTest {
     }
 
 
+    @Test
+    public void whenTelemetryReceivedAndProfileHasNoAlarms_thenSkipProcessingAndTellSuccess() {
+        DeviceId deviceId = new DeviceId(UUID.randomUUID());
+        DeviceState deviceState = createDeviceState(deviceId);
+
+        TbMsg telemetryMsg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(deviceId)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data("{")
+                .build();
+
+        assertDoesNotThrow(() -> deviceState.process(ctx, telemetryMsg));
+
+        verify(ctx).tellSuccess(telemetryMsg);
+    }
+
     private DeviceState createDeviceState(DeviceId deviceId, DeviceProfileAlarm... alarmConfigs) {
         DeviceProfile deviceProfile = new DeviceProfile();
         DeviceProfileData profileData = new DeviceProfileData();

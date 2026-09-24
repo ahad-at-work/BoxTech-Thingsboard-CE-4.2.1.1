@@ -184,6 +184,14 @@ class DeviceState {
     }
 
     public void process(TbContext ctx, TbMsg msg) throws ExecutionException, InterruptedException {
+        // Fast path for telemetry from devices whose profile has no alarm rules.
+        // The Device Profile rule node exists to evaluate profile-level alarms,
+        // so parsing and snapshotting telemetry is unnecessary in this case.
+        if (msg.isTypeOf(POST_TELEMETRY_REQUEST) && deviceProfile.getAlarmSettings().isEmpty()) {
+            ctx.tellSuccess(msg);
+            return;
+        }
+
         if (latestValues == null) {
             latestValues = fetchLatestValues(ctx, deviceId);
         }
