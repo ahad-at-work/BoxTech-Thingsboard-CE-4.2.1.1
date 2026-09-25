@@ -18,7 +18,9 @@ package org.thingsboard.rule.engine.metadata;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -30,6 +32,7 @@ import org.thingsboard.rule.engine.api.TbNode;
 import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.rule.engine.api.util.TbNodeUtils;
+import org.thingsboard.server.common.data.EntityType;
 import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
@@ -109,13 +112,63 @@ public class TbGetTelemetryNode implements TbNode {
             throw new RuntimeException("Interval start should be less than Interval end");
         }
         List<String> keys = TbNodeUtils.processPatterns(tsKeyNames, msg);
-        ListenableFuture<List<TsKvEntry>> list = ctx.getTimeseriesService().findAll(ctx.getTenantId(), msg.getOriginator(), buildQueries(interval, keys));
+        ListenableFuture<List<TsKvEntry>> list;
+        if (FetchMode.LAST.equals(fetchMode)
+                && !config.isUseMetadataIntervalPatterns()
+                && config.getEndInterval() == 0
+                && !EntityType.ENTITY_VIEW.equals(msg.getOriginator().getEntityType())) {
+            list = findLast(ctx, msg, interval, keys);
+        } else {
+            list = ctx.getTimeseriesService().findAll(
+                    ctx.getTenantId(), msg.getOriginator(), buildQueries(interval, keys));
+        }
         DonAsynchron.withCallback(list, data -> {
             var metaData = updateMetadata(data, msg, keys);
             ctx.tellSuccess(msg.transform()
                     .metaData(metaData)
                     .build());
         }, error -> ctx.tellFailure(msg, error), ctx.getDbCallbackExecutor());
+    }
+
+    private ListenableFuture<List<TsKvEntry>> findLast(
+            TbContext ctx, TbMsg msg, Interval interval, List<String> keys) {
+
+        List<ListenableFuture<List<TsKvEntry>>> futures = keys.stream()
+                .map(key -> Futures.transformAsync(
+                        ctx.getTimeseriesService().findLatest(
+                                ctx.getTenantId(), msg.getOriginator(), key),
+                        latestOpt -> {
+                            if (latestOpt.isEmpty()) {
+                                return ctx.getTimeseriesService().findAll(
+                                        ctx.getTenantId(),
+                                        msg.getOriginator(),
+                                        buildQueries(interval, List.of(key)));
+                            }
+
+                            TsKvEntry latest = latestOpt.get();
+
+                            if (latest.getTs() < interval.getStartTs()) {
+                                return Futures.immediateFuture(List.of());
+                            }
+
+                            if (latest.getTs() <= interval.getEndTs()) {
+                                return Futures.immediateFuture(List.of(latest));
+                            }
+
+                            return ctx.getTimeseriesService().findAll(
+                                    ctx.getTenantId(),
+                                    msg.getOriginator(),
+                                    buildQueries(interval, List.of(key)));
+                        },
+                        MoreExecutors.directExecutor()))
+                .collect(Collectors.toList());
+
+        return Futures.transform(
+                Futures.allAsList(futures),
+                lists -> lists.stream()
+                        .flatMap(List::stream)
+                        .collect(Collectors.toList()),
+                MoreExecutors.directExecutor());
     }
 
     private List<ReadTsKvQuery> buildQueries(Interval interval, List<String> keys) {

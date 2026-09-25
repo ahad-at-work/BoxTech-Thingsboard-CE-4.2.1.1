@@ -36,6 +36,7 @@ import org.thingsboard.rule.engine.api.TbNodeConfiguration;
 import org.thingsboard.rule.engine.api.TbNodeException;
 import org.thingsboard.server.common.data.id.DeviceId;
 import org.thingsboard.server.common.data.id.EntityId;
+import org.thingsboard.server.common.data.id.EntityViewId;
 import org.thingsboard.server.common.data.id.TenantId;
 import org.thingsboard.server.common.data.kv.Aggregation;
 import org.thingsboard.server.common.data.kv.BasicTsKvEntry;
@@ -51,6 +52,7 @@ import org.thingsboard.server.dao.timeseries.TimeseriesService;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -71,6 +73,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
 
     private final TenantId TENANT_ID = TenantId.fromUUID(UUID.fromString("5738401b-9dba-422b-b656-a62fe7431917"));
     private final DeviceId DEVICE_ID = new DeviceId(UUID.fromString("8a8fd749-b2ec-488b-a6c6-fc66614d8686"));
+    private final EntityViewId ENTITY_VIEW_ID = new EntityViewId(UUID.fromString("7dd4e1b9-ae1d-42f4-9ec7-3bf4c068725e"));
 
     private final ListeningExecutor executor = new TestDbCallbackExecutor();
 
@@ -507,6 +510,290 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
                 .metaData(metaData)
                 .build();
         assertThat(actualMsg.getValue()).usingRecursiveComparison().ignoringFields("ctx").isEqualTo(expectedMsg);
+    }
+
+    @Test
+    public void givenLastAndLatestInsideInterval_whenOnMsg_thenUseLatestWithoutHistoricalQuery() throws TbNodeException {
+        // GIVEN
+        config.setFetchMode(FetchMode.LAST);
+        config.setEndInterval(0);
+        node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        long now = 1719220400000L;
+        willReturn(now).given(node).getCurrentTimeMillis();
+
+        mockTimeseriesService();
+
+        TsKvEntry latest = new BasicTsKvEntry(
+                now - TimeUnit.SECONDS.toMillis(90),
+                new DoubleDataEntry("temperature", 22.4));
+
+        given(timeseriesServiceMock.findLatest(
+                eq(TENANT_ID), eq(DEVICE_ID), eq("temperature")))
+                .willReturn(Futures.immediateFuture(Optional.of(latest)));
+
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        then(timeseriesServiceMock).should().findLatest(
+                eq(TENANT_ID), eq(DEVICE_ID), eq("temperature"));
+        then(timeseriesServiceMock).should(org.mockito.Mockito.never())
+                .findAll(eq(TENANT_ID), eq(DEVICE_ID), anyList());
+
+        ArgumentCaptor<TbMsg> actualMsg = ArgumentCaptor.forClass(TbMsg.class);
+        then(ctxMock).should().tellSuccess(actualMsg.capture());
+
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("temperature", "\"22.4\"");
+
+        TbMsg expectedMsg = msg.transform()
+                .metaData(metaData)
+                .build();
+
+        assertThat(actualMsg.getValue())
+                .usingRecursiveComparison()
+                .ignoringFields("ctx")
+                .isEqualTo(expectedMsg);
+    }
+
+    @Test
+    public void givenLastAndLatestOlderThanStart_whenOnMsg_thenReturnNoValueWithoutHistoricalQuery() throws TbNodeException {
+        // GIVEN
+        config.setFetchMode(FetchMode.LAST);
+        config.setEndInterval(0);
+        node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        long now = 1719220400000L;
+        willReturn(now).given(node).getCurrentTimeMillis();
+
+        mockTimeseriesService();
+
+        TsKvEntry latest = new BasicTsKvEntry(
+                now - TimeUnit.MINUTES.toMillis(3),
+                new DoubleDataEntry("temperature", 21.7));
+
+        given(timeseriesServiceMock.findLatest(
+                eq(TENANT_ID), eq(DEVICE_ID), eq("temperature")))
+                .willReturn(Futures.immediateFuture(Optional.of(latest)));
+
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        then(timeseriesServiceMock).should(org.mockito.Mockito.never())
+                .findAll(eq(TENANT_ID), eq(DEVICE_ID), anyList());
+
+        ArgumentCaptor<TbMsg> actualMsg = ArgumentCaptor.forClass(TbMsg.class);
+        then(ctxMock).should().tellSuccess(actualMsg.capture());
+
+        assertThat(actualMsg.getValue())
+                .usingRecursiveComparison()
+                .ignoringFields("ctx")
+                .isEqualTo(msg);
+    }
+
+    @Test
+    public void givenLastAndLatestNewerThanEnd_whenOnMsg_thenFallbackToHistoricalQuery() throws TbNodeException {
+        // GIVEN
+        config.setFetchMode(FetchMode.LAST);
+        config.setEndInterval(0);
+        node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        long now = 1719220400000L;
+        willReturn(now).given(node).getCurrentTimeMillis();
+
+        mockTimeseriesService();
+
+        TsKvEntry latest = new BasicTsKvEntry(
+                now + TimeUnit.SECONDS.toMillis(30),
+                new DoubleDataEntry("temperature", 24.8));
+
+        TsKvEntry historical = new BasicTsKvEntry(
+                now - TimeUnit.SECONDS.toMillis(30),
+                new DoubleDataEntry("temperature", 22.4));
+
+        given(timeseriesServiceMock.findLatest(
+                eq(TENANT_ID), eq(DEVICE_ID), eq("temperature")))
+                .willReturn(Futures.immediateFuture(Optional.of(latest)));
+
+        given(timeseriesServiceMock.findAll(
+                eq(TENANT_ID), eq(DEVICE_ID), anyList()))
+                .willReturn(Futures.immediateFuture(List.of(historical)));
+
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        ArgumentCaptor<List<ReadTsKvQuery>> queryCaptor =
+                ArgumentCaptor.forClass(List.class);
+
+        then(timeseriesServiceMock).should().findAll(
+                eq(TENANT_ID), eq(DEVICE_ID), queryCaptor.capture());
+
+        ReadTsKvQuery query = queryCaptor.getValue().get(0);
+        assertThat(query.getStartTs())
+                .isEqualTo(now - TimeUnit.MINUTES.toMillis(config.getStartInterval()));
+        assertThat(query.getEndTs())
+                .isEqualTo(now - TimeUnit.MINUTES.toMillis(config.getEndInterval()));
+        assertThat(query.getLimit()).isEqualTo(1);
+        assertThat(query.getOrder()).isEqualTo("DESC");
+
+        ArgumentCaptor<TbMsg> actualMsg = ArgumentCaptor.forClass(TbMsg.class);
+        then(ctxMock).should().tellSuccess(actualMsg.capture());
+
+        TbMsgMetaData metaData = new TbMsgMetaData();
+        metaData.putValue("temperature", "\"22.4\"");
+
+        TbMsg expectedMsg = msg.transform()
+                .metaData(metaData)
+                .build();
+
+        assertThat(actualMsg.getValue())
+                .usingRecursiveComparison()
+                .ignoringFields("ctx")
+                .isEqualTo(expectedMsg);
+    }
+
+    @Test
+    public void givenLastAndLatestMissing_whenOnMsg_thenFallbackToHistoricalQuery() throws TbNodeException {
+        // GIVEN
+        config.setFetchMode(FetchMode.LAST);
+        config.setEndInterval(0);
+        node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        long now = 1719220400000L;
+        willReturn(now).given(node).getCurrentTimeMillis();
+
+        mockTimeseriesService();
+
+        given(timeseriesServiceMock.findLatest(
+                eq(TENANT_ID), eq(DEVICE_ID), eq("temperature")))
+                .willReturn(Futures.immediateFuture(Optional.empty()));
+
+        given(timeseriesServiceMock.findAll(
+                eq(TENANT_ID), eq(DEVICE_ID), anyList()))
+                .willReturn(Futures.immediateFuture(Collections.emptyList()));
+
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        then(timeseriesServiceMock).should().findLatest(
+                eq(TENANT_ID), eq(DEVICE_ID), eq("temperature"));
+
+        then(timeseriesServiceMock).should().findAll(
+                eq(TENANT_ID), eq(DEVICE_ID), anyList());
+
+        then(ctxMock).should().tellSuccess(any(TbMsg.class));
+    }
+
+    @Test
+    public void givenLastAndNonZeroEndInterval_whenOnMsg_thenKeepHistoricalPath() throws TbNodeException {
+        // GIVEN
+        config.setFetchMode(FetchMode.LAST);
+        config.setEndInterval(1);
+
+        node.init(
+                ctxMock,
+                new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        long now = 1719220400000L;
+        willReturn(now).given(node).getCurrentTimeMillis();
+
+        mockTimeseriesService();
+
+        given(timeseriesServiceMock.findAll(
+                eq(TENANT_ID), eq(DEVICE_ID), anyList()))
+                .willReturn(Futures.immediateFuture(Collections.emptyList()));
+
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(DEVICE_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        then(timeseriesServiceMock).should(org.mockito.Mockito.never())
+                .findLatest(
+                        eq(TENANT_ID),
+                        eq(DEVICE_ID),
+                        eq("temperature"));
+
+        then(timeseriesServiceMock).should().findAll(
+                eq(TENANT_ID),
+                eq(DEVICE_ID),
+                anyList());
+
+        then(ctxMock).should().tellSuccess(any(TbMsg.class));
+    }
+
+    @Test
+    public void givenLastAndEntityView_whenOnMsg_thenKeepHistoricalPath() throws TbNodeException {
+        // GIVEN
+        config.setFetchMode(FetchMode.LAST);
+        config.setEndInterval(0);
+        node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
+
+        long now = 1719220400000L;
+        willReturn(now).given(node).getCurrentTimeMillis();
+
+        mockTimeseriesService();
+
+        given(timeseriesServiceMock.findAll(
+                eq(TENANT_ID), eq(ENTITY_VIEW_ID), anyList()))
+                .willReturn(Futures.immediateFuture(Collections.emptyList()));
+
+        TbMsg msg = TbMsg.newMsg()
+                .type(TbMsgType.POST_TELEMETRY_REQUEST)
+                .originator(ENTITY_VIEW_ID)
+                .copyMetaData(TbMsgMetaData.EMPTY)
+                .data(TbMsg.EMPTY_JSON_OBJECT)
+                .build();
+
+        // WHEN
+        node.onMsg(ctxMock, msg);
+
+        // THEN
+        then(timeseriesServiceMock).should(org.mockito.Mockito.never())
+                .findLatest(eq(TENANT_ID), eq(ENTITY_VIEW_ID), eq("temperature"));
+
+        then(timeseriesServiceMock).should().findAll(
+                eq(TENANT_ID), eq(ENTITY_VIEW_ID), anyList());
+
+        then(ctxMock).should().tellSuccess(any(TbMsg.class));
     }
 
     private void mockTimeseriesService() {
