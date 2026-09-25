@@ -124,6 +124,37 @@ public class BaseTimeseriesService implements TimeseriesService {
     }
 
     @Override
+    public ListenableFuture<List<TsKvEntry>> findLatestInRange(
+            TenantId tenantId,
+            EntityId entityId,
+            List<ReadTsKvQuery> queries) {
+
+        validate(entityId);
+        queries.forEach(this::validate);
+
+        if (entityId.getEntityType().equals(EntityType.ENTITY_VIEW)) {
+            return findAll(tenantId, entityId, queries);
+        }
+
+        return Futures.transform(
+                timeseriesDao.findLatestInRange(
+                        tenantId,
+                        entityId,
+                        queries),
+                result -> {
+                    if (result == null || result.isEmpty()) {
+                        return Collections.emptyList();
+                    }
+
+                    return result.stream()
+                            .map(ReadTsKvQueryResult::getData)
+                            .flatMap(Collection::stream)
+                            .collect(Collectors.toList());
+                },
+                MoreExecutors.directExecutor());
+    }
+
+    @Override
     public ListenableFuture<Optional<TsKvEntry>> findLatest(TenantId tenantId, EntityId entityId, String key) {
         validate(entityId);
         return timeseriesLatestDao.findLatestOpt(tenantId, entityId, key);

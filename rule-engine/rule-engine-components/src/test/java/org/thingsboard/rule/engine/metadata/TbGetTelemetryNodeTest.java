@@ -331,7 +331,24 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         mockTimeseriesService();
-        given(timeseriesServiceMock.findAll(any(TenantId.class), any(EntityId.class), anyList())).willReturn(Futures.immediateFuture(Collections.emptyList()));
+
+        if (FetchMode.LAST.equals(fetchMode)) {
+            given(timeseriesServiceMock.findLatestInRange(
+                    any(TenantId.class),
+                    any(EntityId.class),
+                    anyList()))
+                    .willReturn(
+                            Futures.immediateFuture(
+                                    Collections.emptyList()));
+        } else {
+            given(timeseriesServiceMock.findAll(
+                    any(TenantId.class),
+                    any(EntityId.class),
+                    anyList()))
+                    .willReturn(
+                            Futures.immediateFuture(
+                                    Collections.emptyList()));
+        }
 
         // WHEN
         TbMsg msg = TbMsg.newMsg()
@@ -340,12 +357,42 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
                 .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
+
         node.onMsg(ctxMock, msg);
 
         // THEN
-        ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
-        then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
-        ReadTsKvQuery actualReadTsKvQuery = actualReadTsKvQueryList.getValue().get(0);
+        ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList =
+                ArgumentCaptor.forClass(List.class);
+
+        if (FetchMode.LAST.equals(fetchMode)) {
+            then(timeseriesServiceMock).should().findLatestInRange(
+                    eq(TENANT_ID),
+                    eq(DEVICE_ID),
+                    actualReadTsKvQueryList.capture());
+
+            then(timeseriesServiceMock)
+                    .should(org.mockito.Mockito.never())
+                    .findAll(
+                            eq(TENANT_ID),
+                            eq(DEVICE_ID),
+                            anyList());
+        } else {
+            then(timeseriesServiceMock).should().findAll(
+                    eq(TENANT_ID),
+                    eq(DEVICE_ID),
+                    actualReadTsKvQueryList.capture());
+
+            then(timeseriesServiceMock)
+                    .should(org.mockito.Mockito.never())
+                    .findLatestInRange(
+                            eq(TENANT_ID),
+                            eq(DEVICE_ID),
+                            anyList());
+        }
+
+        ReadTsKvQuery actualReadTsKvQuery =
+                actualReadTsKvQueryList.getValue().get(0);
+
         limitInQueryVerifier.accept(actualReadTsKvQuery);
     }
 
@@ -376,7 +423,24 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         mockTimeseriesService();
-        given(timeseriesServiceMock.findAll(any(TenantId.class), any(EntityId.class), anyList())).willReturn(Futures.immediateFuture(Collections.emptyList()));
+
+        if (FetchMode.LAST.equals(fetchMode)) {
+            given(timeseriesServiceMock.findLatestInRange(
+                    any(TenantId.class),
+                    any(EntityId.class),
+                    anyList()))
+                    .willReturn(
+                            Futures.immediateFuture(
+                                    Collections.emptyList()));
+        } else {
+            given(timeseriesServiceMock.findAll(
+                    any(TenantId.class),
+                    any(EntityId.class),
+                    anyList()))
+                    .willReturn(
+                            Futures.immediateFuture(
+                                    Collections.emptyList()));
+        }
 
         // WHEN
         TbMsg msg = TbMsg.newMsg()
@@ -385,12 +449,42 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
                 .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
+
         node.onMsg(ctxMock, msg);
 
         // THEN
-        ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList = ArgumentCaptor.forClass(List.class);
-        then(timeseriesServiceMock).should().findAll(eq(TENANT_ID), eq(DEVICE_ID), actualReadTsKvQueryList.capture());
-        ReadTsKvQuery actualReadTsKvQuery = actualReadTsKvQueryList.getValue().get(0);
+        ArgumentCaptor<List<ReadTsKvQuery>> actualReadTsKvQueryList =
+                ArgumentCaptor.forClass(List.class);
+
+        if (FetchMode.LAST.equals(fetchMode)) {
+            then(timeseriesServiceMock).should().findLatestInRange(
+                    eq(TENANT_ID),
+                    eq(DEVICE_ID),
+                    actualReadTsKvQueryList.capture());
+
+            then(timeseriesServiceMock)
+                    .should(org.mockito.Mockito.never())
+                    .findAll(
+                            eq(TENANT_ID),
+                            eq(DEVICE_ID),
+                            anyList());
+        } else {
+            then(timeseriesServiceMock).should().findAll(
+                    eq(TENANT_ID),
+                    eq(DEVICE_ID),
+                    actualReadTsKvQueryList.capture());
+
+            then(timeseriesServiceMock)
+                    .should(org.mockito.Mockito.never())
+                    .findLatestInRange(
+                            eq(TENANT_ID),
+                            eq(DEVICE_ID),
+                            anyList());
+        }
+
+        ReadTsKvQuery actualReadTsKvQuery =
+                actualReadTsKvQueryList.getValue().get(0);
+
         orderInQueryVerifier.accept(actualReadTsKvQuery);
     }
 
@@ -484,12 +578,33 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         node.init(ctxMock, new TbNodeConfiguration(JacksonUtil.valueToTree(config)));
 
         mockTimeseriesService();
+
         long ts = System.currentTimeMillis();
+
         List<TsKvEntry> tsKvEntries = List.of(
-                new BasicTsKvEntry(ts - 4, new DoubleDataEntry("temperature", 22.4)),
-                new BasicTsKvEntry(ts - 4, new DoubleDataEntry("humidity", 55.5))
+                new BasicTsKvEntry(
+                        ts - 4,
+                        new DoubleDataEntry("temperature", 22.4)),
+                new BasicTsKvEntry(
+                        ts - 4,
+                        new DoubleDataEntry("humidity", 55.5))
         );
-        given(timeseriesServiceMock.findAll(any(TenantId.class), any(EntityId.class), anyList())).willReturn(Futures.immediateFuture(tsKvEntries));
+
+        if (FetchMode.LAST.name().equals(fetchMode)) {
+            given(timeseriesServiceMock.findLatestInRange(
+                    any(TenantId.class),
+                    any(EntityId.class),
+                    anyList()))
+                    .willReturn(
+                            Futures.immediateFuture(tsKvEntries));
+        } else {
+            given(timeseriesServiceMock.findAll(
+                    any(TenantId.class),
+                    any(EntityId.class),
+                    anyList()))
+                    .willReturn(
+                            Futures.immediateFuture(tsKvEntries));
+        }
 
         // WHEN
         TbMsg msg = TbMsg.newMsg()
@@ -498,18 +613,53 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
                 .copyMetaData(TbMsgMetaData.EMPTY)
                 .data(TbMsg.EMPTY_JSON_OBJECT)
                 .build();
+
         node.onMsg(ctxMock, msg);
 
         // THEN
-        ArgumentCaptor<TbMsg> actualMsg = ArgumentCaptor.forClass(TbMsg.class);
+        if (FetchMode.LAST.name().equals(fetchMode)) {
+            then(timeseriesServiceMock).should().findLatestInRange(
+                    eq(TENANT_ID),
+                    eq(DEVICE_ID),
+                    anyList());
+
+            then(timeseriesServiceMock)
+                    .should(org.mockito.Mockito.never())
+                    .findAll(
+                            eq(TENANT_ID),
+                            eq(DEVICE_ID),
+                            anyList());
+        } else {
+            then(timeseriesServiceMock).should().findAll(
+                    eq(TENANT_ID),
+                    eq(DEVICE_ID),
+                    anyList());
+
+            then(timeseriesServiceMock)
+                    .should(org.mockito.Mockito.never())
+                    .findLatestInRange(
+                            eq(TENANT_ID),
+                            eq(DEVICE_ID),
+                            anyList());
+        }
+
+        ArgumentCaptor<TbMsg> actualMsg =
+                ArgumentCaptor.forClass(TbMsg.class);
+
         then(ctxMock).should().tellSuccess(actualMsg.capture());
+
         TbMsgMetaData metaData = new TbMsgMetaData();
         metaData.putValue("temperature", "\"22.4\"");
         metaData.putValue("humidity", "\"55.5\"");
+
         TbMsg expectedMsg = msg.transform()
                 .metaData(metaData)
                 .build();
-        assertThat(actualMsg.getValue()).usingRecursiveComparison().ignoringFields("ctx").isEqualTo(expectedMsg);
+
+        assertThat(actualMsg.getValue())
+                .usingRecursiveComparison()
+                .ignoringFields("ctx")
+                .isEqualTo(expectedMsg);
     }
 
     @Test
@@ -717,7 +867,7 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
     }
 
     @Test
-    public void givenLastAndNonZeroEndInterval_whenOnMsg_thenKeepHistoricalPath() throws TbNodeException {
+    public void givenLastAndNonZeroEndInterval_whenOnMsg_thenUseBatchedHistoricalPath() throws TbNodeException {
         // GIVEN
         config.setFetchMode(FetchMode.LAST);
         config.setEndInterval(1);
@@ -731,9 +881,13 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
 
         mockTimeseriesService();
 
-        given(timeseriesServiceMock.findAll(
-                eq(TENANT_ID), eq(DEVICE_ID), anyList()))
-                .willReturn(Futures.immediateFuture(Collections.emptyList()));
+        given(timeseriesServiceMock.findLatestInRange(
+                eq(TENANT_ID),
+                eq(DEVICE_ID),
+                anyList()))
+                .willReturn(
+                        Futures.immediateFuture(
+                                Collections.emptyList()));
 
         TbMsg msg = TbMsg.newMsg()
                 .type(TbMsgType.POST_TELEMETRY_REQUEST)
@@ -746,18 +900,57 @@ public class TbGetTelemetryNodeTest extends AbstractRuleNodeUpgradeTest {
         node.onMsg(ctxMock, msg);
 
         // THEN
-        then(timeseriesServiceMock).should(org.mockito.Mockito.never())
+        then(timeseriesServiceMock)
+                .should(org.mockito.Mockito.never())
                 .findLatest(
                         eq(TENANT_ID),
                         eq(DEVICE_ID),
                         eq("temperature"));
 
-        then(timeseriesServiceMock).should().findAll(
+        then(timeseriesServiceMock)
+                .should(org.mockito.Mockito.never())
+                .findAll(
+                        eq(TENANT_ID),
+                        eq(DEVICE_ID),
+                        anyList());
+
+        ArgumentCaptor<List<ReadTsKvQuery>> queryCaptor =
+                ArgumentCaptor.forClass(List.class);
+
+        then(timeseriesServiceMock).should().findLatestInRange(
                 eq(TENANT_ID),
                 eq(DEVICE_ID),
-                anyList());
+                queryCaptor.capture());
 
-        then(ctxMock).should().tellSuccess(any(TbMsg.class));
+        assertThat(queryCaptor.getValue()).hasSize(1);
+
+        ReadTsKvQuery query =
+                queryCaptor.getValue().get(0);
+
+        assertThat(query.getKey())
+                .isEqualTo("temperature");
+
+        assertThat(query.getStartTs())
+                .isEqualTo(
+                        now - TimeUnit.MINUTES.toMillis(
+                                config.getStartInterval()));
+
+        assertThat(query.getEndTs())
+                .isEqualTo(
+                        now - TimeUnit.MINUTES.toMillis(
+                                config.getEndInterval()));
+
+        assertThat(query.getLimit())
+                .isEqualTo(1);
+
+        assertThat(query.getOrder())
+                .isEqualTo("DESC");
+
+        assertThat(query.getAggregation())
+                .isEqualTo(Aggregation.NONE);
+
+        then(ctxMock).should()
+                .tellSuccess(any(TbMsg.class));
     }
 
     @Test

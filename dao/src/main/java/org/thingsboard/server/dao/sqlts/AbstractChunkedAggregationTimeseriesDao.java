@@ -44,11 +44,16 @@ import org.thingsboard.server.dao.timeseries.TimeseriesDao;
 import org.thingsboard.server.dao.util.TimeUtils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("UnstableApiUsage")
 @Slf4j
@@ -114,6 +119,147 @@ public abstract class AbstractChunkedAggregationTimeseriesDao extends AbstractSq
     @Override
     public ListenableFuture<List<ReadTsKvQueryResult>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries) {
         return processFindAllAsync(tenantId, entityId, queries);
+    }
+
+    @Override
+    public ListenableFuture<List<ReadTsKvQueryResult>> findLatestInRange(
+            TenantId tenantId,
+            EntityId entityId,
+            List<ReadTsKvQuery> queries) {
+
+        if (queries == null || queries.isEmpty()) {
+            return Futures.immediateFuture(Collections.emptyList());
+        }
+
+        ReadTsKvQuery first = queries.get(0);
+        long startTs = first.getStartTs();
+        long endTs = first.getEndTs();
+
+        boolean compatible = queries.stream().allMatch(query ->
+                query.getStartTs() == startTs
+                        && query.getEndTs() == endTs
+                        && query.getLimit() == 1
+                        && Aggregation.NONE.equals(query.getAggregation())
+                        && Direction.DESC.name().equalsIgnoreCase(query.getOrder()));
+
+        if (!compatible) {
+            return processFindAllAsync(tenantId, entityId, queries);
+        }
+
+        return service.submit(() -> {
+            Map<String, Integer> keyIds = new HashMap<>();
+
+            for (ReadTsKvQuery query : queries) {
+                keyIds.computeIfAbsent(
+                        query.getKey(),
+                        keyDictionaryDao::getOrSaveKeyId);
+            }
+
+            List<TsKvEntity> entities = findLatestInRangeWithJdbc(
+                    entityId.getId(),
+                    keyIds.values(),
+                    startTs,
+                    endTs);
+
+            Map<Integer, TsKvEntity> entityByKey = entities.stream()
+                    .collect(Collectors.toMap(
+                            TsKvEntity::getKey,
+                            Function.identity(),
+                            (left, right) -> left));
+
+            List<ReadTsKvQueryResult> results =
+                    new ArrayList<>(queries.size());
+
+            for (ReadTsKvQuery query : queries) {
+                TsKvEntity entity =
+                        entityByKey.get(keyIds.get(query.getKey()));
+
+                List<TsKvEntry> data;
+
+                if (entity == null) {
+                    data = Collections.emptyList();
+                } else {
+                    entity.setStrKey(query.getKey());
+                    data = DaoUtil.convertDataList(List.of(entity));
+                }
+
+                long lastTs = data.stream()
+                        .map(TsKvEntry::getTs)
+                        .max(Long::compare)
+                        .orElse(query.getStartTs());
+
+                results.add(
+                        new ReadTsKvQueryResult(
+                                query.getId(),
+                                data,
+                                lastTs));
+            }
+
+            return results;
+        });
+    }
+
+    private List<TsKvEntity> findLatestInRangeWithJdbc(
+            UUID entityId,
+            Collection<Integer> entityKeys,
+            long startTs,
+            long endTs) {
+
+        if (entityKeys.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        String values = String.join(
+                ", ",
+                Collections.nCopies(entityKeys.size(), "(?)"));
+
+        String sql =
+                "SELECT t.* " +
+                "FROM (VALUES " + values + ") AS k(key) " +
+                "CROSS JOIN LATERAL (" +
+                "    SELECT x.* " +
+                "    FROM ts_kv x " +
+                "    WHERE x.entity_id = ? " +
+                "      AND x.key = k.key " +
+                "      AND x.ts >= ? " +
+                "      AND x.ts < ? " +
+                "    ORDER BY x.ts DESC " +
+                "    LIMIT 1" +
+                ") t";
+
+        List<Object> params =
+                new ArrayList<>(entityKeys.size() + 3);
+
+        params.addAll(entityKeys);
+        params.add(entityId);
+        params.add(startTs);
+        params.add(endTs);
+
+        return jdbcTemplate.query(
+                sql,
+                (rs, rowNum) -> {
+                    TsKvEntity entity = new TsKvEntity();
+
+                    entity.setEntityId(
+                            rs.getObject("entity_id", UUID.class));
+                    entity.setKey(
+                            rs.getInt("key"));
+                    entity.setTs(
+                            rs.getLong("ts"));
+                    entity.setBooleanValue(
+                            rs.getObject("bool_v", Boolean.class));
+                    entity.setStrValue(
+                            rs.getString("str_v"));
+                    entity.setLongValue(
+                            rs.getObject("long_v", Long.class));
+                    entity.setDoubleValue(
+                            rs.getObject("dbl_v", Double.class));
+                    entity.setJsonValue(
+                            rs.getString("json_v"));
+
+                    return entity;
+                },
+                params.toArray());
     }
 
     @Override

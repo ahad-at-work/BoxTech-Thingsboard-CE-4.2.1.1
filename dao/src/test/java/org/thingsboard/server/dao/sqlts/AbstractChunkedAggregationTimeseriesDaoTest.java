@@ -16,19 +16,31 @@
 package org.thingsboard.server.dao.sqlts;
 
 import com.google.common.util.concurrent.Futures;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.thingsboard.server.common.data.kv.BaseReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQuery;
 import org.thingsboard.server.common.data.kv.ReadTsKvQueryResult;
 import org.thingsboard.server.common.data.kv.TsKvEntry;
+import org.thingsboard.server.dao.dictionary.KeyDictionaryDao;
+import org.thingsboard.server.dao.sql.JpaExecutorService;
+import org.thingsboard.server.dao.sqlts.ts.TsKvRepository;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.willAnswer;
 import static org.mockito.BDDMockito.willCallRealMethod;
 import static org.mockito.BDDMockito.willReturn;
 import static org.mockito.Mockito.mock;
@@ -37,6 +49,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.thingsboard.server.common.data.id.TenantId.SYS_TENANT_ID;
 import static org.thingsboard.server.common.data.kv.Aggregation.COUNT;
+import static org.thingsboard.server.common.data.kv.Aggregation.NONE;
 
 public class AbstractChunkedAggregationTimeseriesDaoTest {
 
@@ -44,14 +57,128 @@ public class AbstractChunkedAggregationTimeseriesDaoTest {
     final String TEMP = "temp";
     final String DESC = "DESC";
     private AbstractChunkedAggregationTimeseriesDao tsDao;
+    private TsKvRepository tsKvRepository;
+    private KeyDictionaryDao keyDictionaryDao;
+    private JdbcTemplate jdbcTemplate;
+    private JpaExecutorService executor;
 
     @Before
     public void setUp() throws Exception {
         tsDao = spy(AbstractChunkedAggregationTimeseriesDao.class);
+
+        tsKvRepository = mock(TsKvRepository.class);
+        keyDictionaryDao = mock(KeyDictionaryDao.class);
+        jdbcTemplate = mock(JdbcTemplate.class);
+
+        executor = new JpaExecutorService();
+        ReflectionTestUtils.setField(
+                executor,
+                "poolSize",
+                1);
+        executor.init();
+
+        tsDao.tsKvRepository = tsKvRepository;
+
+        ReflectionTestUtils.setField(
+                tsDao,
+                "keyDictionaryDao",
+                keyDictionaryDao);
+
+        ReflectionTestUtils.setField(
+                tsDao,
+                "service",
+                executor);
+
+        ReflectionTestUtils.setField(
+                tsDao,
+                "jdbcTemplate",
+                jdbcTemplate);
         Optional<TsKvEntry> optionalListenableFuture = Optional.of(mock(TsKvEntry.class));
         willReturn(Futures.immediateFuture(optionalListenableFuture)).given(tsDao).findAndAggregateAsync(any(), anyString(), anyLong(), anyLong(), anyLong(), any());
         willReturn(Futures.immediateFuture(mock(ReadTsKvQueryResult.class))).given(tsDao).getReadTsKvQueryResultFuture(any(), any());
         willReturn(mock(ReadTsKvQueryResult.class)).given(tsDao).findAllAsyncWithLimit(any(), any());
+    }
+
+    @After
+    public void tearDown() {
+        executor.destroy();
+    }
+
+    @Test
+    public void given88CompatibleQueries_whenFindLatestInRange_thenUseSingleJdbcQuery() throws Exception {
+        long startTs = 100_000L;
+        long endTs = 200_000L;
+
+        List<ReadTsKvQuery> queries = new ArrayList<>();
+
+        for (int i = 0; i < 88; i++) {
+            queries.add(
+                    new BaseReadTsKvQuery(
+                            "batchKey" + i,
+                            startTs,
+                            endTs,
+                            0,
+                            1,
+                            NONE,
+                            DESC));
+        }
+
+        willAnswer(invocation -> {
+            String key = invocation.getArgument(0);
+            return Integer.parseInt(
+                    key.substring("batchKey".length())) + 1;
+        }).given(keyDictionaryDao)
+                .getOrSaveKeyId(anyString());
+
+        willReturn(Collections.emptyList())
+                .given(jdbcTemplate)
+                .query(
+                        anyString(),
+                        any(RowMapper.class),
+                        any(Object[].class));
+
+        List<ReadTsKvQueryResult> result =
+                tsDao.findLatestInRange(
+                                SYS_TENANT_ID,
+                                SYS_TENANT_ID,
+                                queries)
+                        .get();
+
+        assertThat(result).hasSize(88);
+
+        ArgumentCaptor<String> sqlCaptor =
+                ArgumentCaptor.forClass(String.class);
+
+        ArgumentCaptor<Object[]> paramsCaptor =
+                ArgumentCaptor.forClass(Object[].class);
+
+        verify(jdbcTemplate, times(1))
+                .query(
+                        sqlCaptor.capture(),
+                        any(RowMapper.class),
+                        paramsCaptor.capture());
+
+        assertThat(sqlCaptor.getValue())
+                .contains(
+                        "CROSS JOIN LATERAL",
+                        "x.key = k.key",
+                        "ORDER BY x.ts DESC",
+                        "LIMIT 1");
+
+        Object[] params = paramsCaptor.getValue();
+
+        // 88 key IDs + entityId + startTs + endTs.
+        assertThat(params).hasSize(91);
+
+        assertThat(params[88])
+                .isEqualTo(SYS_TENANT_ID.getId());
+        assertThat(params[89])
+                .isEqualTo(startTs);
+        assertThat(params[90])
+                .isEqualTo(endTs);
+
+        verify(keyDictionaryDao, times(88))
+                .getOrSaveKeyId(anyString());
     }
 
     @Test

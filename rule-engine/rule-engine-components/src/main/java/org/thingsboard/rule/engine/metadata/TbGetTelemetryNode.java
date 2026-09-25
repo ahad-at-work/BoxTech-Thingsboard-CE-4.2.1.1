@@ -115,9 +115,15 @@ public class TbGetTelemetryNode implements TbNode {
         ListenableFuture<List<TsKvEntry>> list;
         if (FetchMode.LAST.equals(fetchMode)
                 && !config.isUseMetadataIntervalPatterns()
-                && config.getEndInterval() == 0
                 && !EntityType.ENTITY_VIEW.equals(msg.getOriginator().getEntityType())) {
-            list = findLast(ctx, msg, interval, keys);
+            if (config.getEndInterval() == 0) {
+                list = findLast(ctx, msg, interval, keys);
+            } else {
+                list = ctx.getTimeseriesService().findLatestInRange(
+                        ctx.getTenantId(),
+                        msg.getOriginator(),
+                        buildQueries(interval, keys));
+            }
         } else {
             list = ctx.getTimeseriesService().findAll(
                     ctx.getTenantId(), msg.getOriginator(), buildQueries(interval, keys));

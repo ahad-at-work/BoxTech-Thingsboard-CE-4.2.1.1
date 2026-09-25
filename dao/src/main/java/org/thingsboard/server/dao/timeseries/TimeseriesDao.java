@@ -32,6 +32,13 @@ public interface TimeseriesDao {
 
     ListenableFuture<List<ReadTsKvQueryResult>> findAllAsync(TenantId tenantId, EntityId entityId, List<ReadTsKvQuery> queries);
 
+    default ListenableFuture<List<ReadTsKvQueryResult>> findLatestInRange(
+            TenantId tenantId,
+            EntityId entityId,
+            List<ReadTsKvQuery> queries) {
+        return findAllAsync(tenantId, entityId, queries);
+    }
+
     ListenableFuture<Integer> save(TenantId tenantId, EntityId entityId, TsKvEntry tsKvEntry, long ttl);
 
     ListenableFuture<Integer> savePartition(TenantId tenantId, EntityId entityId, long tsKvEntryTs, String key);
