@@ -30,3 +30,5 @@ ui-ngx/.angular/
 # Gradle
 .gradle/
 build/
+ui_modifocation_guide/
+ui-ngx/proxy.conf.json

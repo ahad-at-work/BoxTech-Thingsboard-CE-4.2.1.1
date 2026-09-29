@@ -1,0 +1,85 @@
+// Customer d7f604a0-bbe7-11f1-92f9-87fcdac69377 uses the TME navigation
+// layout with the existing BoxTech glass theme. Only layout adaptations
+// live here; colors, typography, header and account card come from that theme.
+:host ::ng-deep mat-sidenav-container.tb-theme-boxtech.tb-theme-boxtech-customer.mat-drawer-container {
+  mat-sidenav.tb-site-sidenav.mat-drawer {
+    // TME's 240px sidebar plus the glass theme's 12px outer inset.
+    width: 252px;
+
+    .tb-sidebar-brand-customer {
+      height: 88px;
+
+      .tb-sidebar-logo {
+        width: 80px;
+        height: 80px;
+        object-fit: contain;
+        background: transparent;
+      }
+    }
+
+    .tb-menu-flyout-list {
+      margin: 0;
+      padding: 6px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background:
+        radial-gradient(300px 120px at 0% 0%, rgba(143, 230, 179, 0.14), transparent 70%),
+        linear-gradient(165deg, rgba(14, 86, 38, 0.96) 0%, rgba(5, 52, 19, 0.97) 50%, rgba(0, 33, 10, 0.98) 100%);
+      box-shadow: 0 24px 48px -16px rgba(0, 33, 10, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+      li {
+        border: none;
+      }
+    }
+
+    &.tb-sidebar-collapsed {
+      // TME's 76px icon rail plus the same outer inset.
+      width: 88px;
+
+      .tb-sidebar-top-bar {
+        padding: 16px 8px 14px;
+      }
+
+      .tb-sidebar-brand-customer {
+        height: 48px;
+
+        .tb-sidebar-logo {
+          width: 44px;
+          height: 44px;
+        }
+      }
+
+      .tb-side-menu > li {
+        flex: 0 0 auto !important;
+
+        > tb-menu-link a.mat-mdc-button.mat-mdc-button-base,
+        > tb-menu-toggle .tb-menu-toggle-wrapper > .tb-button-toggle.mat-mdc-button-base {
+          padding: 0 !important;
+          justify-content: center;
+
+          .mat-icon {
+            margin: 0 !important;
+          }
+        }
+      }
+
+      .tb-sidebar-account {
+        margin: 6px 8px 10px;
+        padding: 8px 0;
+
+        .mat-icon.tb-mini-avatar {
+          margin: 0;
+        }
+      }
+    }
+
+    // The account flyout uses the tenant admin's white menu surface.
+    .tb-user-menu-flyout-list button .mat-icon {
+      color: #1F2933 !important;
+    }
+
+    .tb-user-menu-flyout-list button:hover .mat-icon {
+      color: #ffffff !important;
+    }
+  }
+}

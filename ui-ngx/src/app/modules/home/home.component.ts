@@ -40,7 +40,7 @@ import { MenuId, MenuSection } from '@core/services/menu.models';
 @Component({
   selector: 'tb-home',
   templateUrl: './home.component.html',
-  styleUrls: ['./home.component.scss', './home-glass.component.scss']
+  styleUrls: ['./home.component.scss', './home-glass.component.scss', './home-customer.component.scss']
 })
 export class HomeComponent extends PageComponent implements AfterViewInit, OnInit, OnDestroy {
 
@@ -52,6 +52,7 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
   // component recreation), so a one-time snapshot here goes stale the moment
   // an admin uses that shortcut. See per-customer-theming-playbook.md §1.4-ish.
   isTmeCustomer = this.authState.userDetails?.customerId?.id === '57a0fa00-8d00-11f1-9902-cdf828be2d57';
+  isBoxtechCustomer = this.authState.userDetails?.customerId?.id === 'd7f604a0-bbe7-11f1-92f9-87fcdac69377';
   isCustomerUser = this.authState.authUser.authority === Authority.CUSTOMER_USER;
 
 
@@ -175,8 +176,12 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
     this.sidebarCollapsed = !this.sidebarCollapsed;
   }
 
+  get customerSidebarLayout(): boolean {
+    return this.isTmeCustomer || this.isBoxtechCustomer;
+  }
+
   get sidebarAutoHide(): boolean {
-    return this.isDesktop && !this.isTmeCustomer && !this.sidebarDocked;
+    return this.isDesktop && !this.customerSidebarLayout && !this.sidebarDocked;
   }
 
   // Pin lasts for the current session only, so a reload always brings back auto-hide.
@@ -320,9 +325,10 @@ export class HomeComponent extends PageComponent implements AfterViewInit, OnIni
       .subscribe((authState: AuthState) => {
         this.authState = authState;
         this.isTmeCustomer = authState.userDetails?.customerId?.id === '57a0fa00-8d00-11f1-9902-cdf828be2d57';
+        this.isBoxtechCustomer = authState.userDetails?.customerId?.id === 'd7f604a0-bbe7-11f1-92f9-87fcdac69377';
         this.isCustomerUser = authState.authUser?.authority === Authority.CUSTOMER_USER;
-        if (!this.isTmeCustomer) {
-          // The icon-rail collapse is a TME-only feature; BoxTech uses dock / auto-hide.
+        if (!this.customerSidebarLayout) {
+          // Customer layouts use an icon rail; the default shell uses dock / auto-hide.
           this.sidebarCollapsed = false;
         }
         document.body.classList.toggle('tb-theme-tme-active', this.isTmeCustomer);

@@ -18,7 +18,7 @@
 <div #sidenavHotzone class="tb-sidenav-hotzone" [class.tb-active]="sidebarAutoHide && !forceFullscreen" aria-hidden="true">
   <span class="tb-sidenav-hotzone-handle"></span>
 </div>
-<mat-sidenav-container [autosize]="isTmeCustomer" [hasBackdrop]="sidebarAutoHide ? false : null" [class.tb-theme-tme]="isTmeCustomer" [class.tb-theme-boxtech]="!isTmeCustomer">
+<mat-sidenav-container [autosize]="customerSidebarLayout" [hasBackdrop]="sidebarAutoHide ? false : null" [class.tb-theme-tme]="isTmeCustomer" [class.tb-theme-boxtech]="!isTmeCustomer" [class.tb-theme-boxtech-customer]="isBoxtechCustomer">
   <mat-sidenav #sidenav class="tb-site-sidenav mat-elevation-z2"
                [class.tb-sidebar-collapsed]="sidebarCollapsed"
                [class.tb-sidenav-autohide]="sidebarAutoHide"
@@ -32,7 +32,10 @@
           <div class="tb-sidebar-brand tb-sidebar-brand-tme" *ngIf="!sidebarCollapsed && isTmeCustomer">
             <img src="assets/tme-logo-sidebar.png" alt="TME" class="tb-sidebar-logo tb-sidebar-logo-tme"/>
           </div>
-          <a class="tb-sidebar-brand-glass" *ngIf="!isTmeCustomer" routerLink="/home">
+          <div class="tb-sidebar-brand tb-sidebar-brand-customer" *ngIf="isBoxtechCustomer">
+            <img src="assets/customer-placeholder-logo.png" alt="Customer logo" class="tb-sidebar-logo"/>
+          </div>
+          <a class="tb-sidebar-brand-glass" *ngIf="!customerSidebarLayout" routerLink="/home">
             <span class="tb-brand-mark"><img src="assets/boxtech-icon-only.png" alt=""/></span>
             <span class="tb-brand-text">
               <span class="tb-brand-name">BoxTech</span>
@@ -42,7 +45,7 @@
           <div class="tb-sidebar-brand-collapsed-tme" *ngIf="sidebarCollapsed && isTmeCustomer">
             <img src="assets/tme-logo-mark.png" alt="TME" class="tb-sidebar-logo-mark-tme"/>
           </div>
-          <button mat-icon-button class="tb-sidebar-collapse-toggle" *ngIf="!isMobileSidebar && !isTmeCustomer"
+          <button mat-icon-button class="tb-sidebar-collapse-toggle" *ngIf="!isMobileSidebar && !customerSidebarLayout"
                   [class.tb-pinned]="sidebarDocked"
                   [matTooltip]="sidebarDocked ? 'Auto-hide sidebar' : 'Keep sidebar open'"
                   matTooltipPosition="right"
@@ -53,7 +56,7 @@
             </svg>
           </button>
         </div>
-        <tb-side-menu [collapsed]="sidebarCollapsed" [tmeMode]="isTmeCustomer"></tb-side-menu>
+        <tb-side-menu [collapsed]="sidebarCollapsed" [customerLayout]="customerSidebarLayout"></tb-side-menu>
       </div>
       <div class="tb-sidebar-account" [class.tb-collapsed]="sidebarCollapsed" (click)="$event.stopPropagation()">
         <tb-user-menu [displayUserInfo]="!sidebarCollapsed"></tb-user-menu>
@@ -64,7 +67,7 @@
     <div class="flex flex-col" role="main" style="height: 100%;">
       <mat-toolbar color="primary" class="tb-primary-toolbar flex flex-row">
         <button mat-icon-button
-                *ngIf="isTmeCustomer && !isMobileSidebar"
+                *ngIf="customerSidebarLayout && !isMobileSidebar"
                 class="tb-sidebar-collapse-toggle-tme tb-sidebar-collapse-toggle-tme-header"
                 [attr.aria-label]="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
                 [matTooltip]="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
@@ -77,7 +80,7 @@
                 class="gt-sm:!hidden" (click)="sidenav.toggle()">
           <mat-icon class="material-icons">menu</mat-icon>
         </button>
-        <div class="tb-topbar-title lt-md:!hidden" *ngIf="!isTmeCustomer && !forceFullscreen"
+        <div class="tb-topbar-title lt-md:!hidden" *ngIf="!customerSidebarLayout && !forceFullscreen"
              [class.!hidden]="displaySearchMode()">
           <button mat-icon-button class="tb-topbar-dock-toggle"
                   [class.tb-pinned]="sidebarDocked"
@@ -103,7 +106,7 @@
                 (click)="closeSearch()">
           <mat-icon class="material-icons">arrow_back</mat-icon>
         </button>
-        <nav class="tb-topbar-nav flex flex-row" [class.!hidden]="displaySearchMode() || isTmeCustomer">
+        <nav class="tb-topbar-nav flex flex-row" [class.!hidden]="displaySearchMode() || customerSidebarLayout">
           <a class="tb-topbar-link" routerLink="/dashboards" routerLinkActive="tb-topbar-link-active">
             <mat-icon class="tb-topbar-link-icon">dashboard</mat-icon>
             <span translate>dashboard.dashboards</span>

@@ -21,8 +21,8 @@
 
   <ul class="tb-side-menu flex flex-col items-stretch justify-start"
       [class.has-expanded]="hasExpandedSection(ctx.sections, ctx.desktop)">
-    <li *ngFor="let section of (tmeMode ? tmeOrderedSections(ctx.sections) : ctx.sections); trackBy: trackByMenuSection"
-        [class.!hidden]="ctx.desktop && !tmeMode && headerDuplicatedIds.includes(section.id)"
+    <li *ngFor="let section of (customerLayout ? customerOrderedSections(ctx.sections) : ctx.sections); trackBy: trackByMenuSection"
+        [class.!hidden]="ctx.desktop && !customerLayout && headerDuplicatedIds.includes(section.id)"
         [class.tb-expanded]="section.type !== 'link' && section.opened && !collapsed"
         [ngSwitch]="section.type === 'link'">
       <tb-menu-link *ngSwitchCase="true" [section]="section"></tb-menu-link>

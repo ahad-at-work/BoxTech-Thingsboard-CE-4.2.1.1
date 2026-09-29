@@ -25,9 +25,9 @@ const HEADER_DUPLICATED_IDS: string[] = [
   MenuId.dashboards, MenuId.entities, MenuId.profiles, MenuId.customers, MenuId.resources
 ];
 
-// TME (Trakker Middle East) MAIN section order per approved design spec.
+// Shared customer navigation order, originally defined for Trakker Middle East.
 // Dashboards is included directly here (no separate Quick Access group).
-const TME_MAIN_ORDER: string[] = [
+const CUSTOMER_MAIN_ORDER: string[] = [
   MenuId.home, MenuId.entities, MenuId.alarms, MenuId.dashboards,
   MenuId.edge_instances, MenuId.notifications_center
 ];
@@ -40,7 +40,7 @@ const TME_MAIN_ORDER: string[] = [
 })
 export class SideMenuComponent {
   @Input() collapsed = false;
-  @Input() tmeMode = false;
+  @Input() customerLayout = false;
 
   headerDuplicatedIds = HEADER_DUPLICATED_IDS;
   isDesktop$ = this.breakpointObserver.observe(MediaBreakpoints['gt-sm']).pipe(
@@ -58,17 +58,17 @@ export class SideMenuComponent {
 
   hasExpandedSection(sections: MenuSection[] | null, desktop = false): boolean {
     return !!sections?.some(s =>
-      s.type !== 'link' && s.opened && !(desktop && this.headerDuplicatedIds.includes(s.id))
+      s.type !== 'link' && s.opened && !(desktop && !this.customerLayout && this.headerDuplicatedIds.includes(s.id))
     );
   }
 
-  // Re-orders + filters sections for the TME MAIN group only.
-  // Non-TME behavior (ctx.sections used directly) is completely untouched.
-  tmeOrderedSections(sections: MenuSection[] | null): MenuSection[] {
+  // Re-orders permitted sections for customers using the sidebar-only navigation layout.
+  // The default shell continues to use ctx.sections directly.
+  customerOrderedSections(sections: MenuSection[] | null): MenuSection[] {
     if (!sections) {
       return [];
     }
-    return TME_MAIN_ORDER
+    return CUSTOMER_MAIN_ORDER
       .map(id => sections.find(s => s.id === id))
       .filter((s): s is MenuSection => !!s);
   }
